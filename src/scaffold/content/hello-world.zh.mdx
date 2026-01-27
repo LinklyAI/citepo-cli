@@ -1,0 +1,191 @@
+---
+title: 你好，世界
+description: 欢迎来到你的新博客。这是由 CitePo 生成的第一篇文章，你可以随意编辑或删除。
+date: 2025-01-27
+tags: [入门, 开始]
+authors: [CitePo]
+coverImage: ''
+draft: false
+---
+
+欢迎来到你的全新博客！这是由 [CitePo](https://citepo.com) 生成的示例文章，帮助你快速上手。
+
+## 什么是 CitePo？
+
+CitePo 是一个轻量级的博客发布平台。你用 **MDX**（Markdown + JSX）写文章，推送到 Git，站点就会自动构建和部署。
+
+<Callout type="tip">
+MDX 允许你在 Markdown 中使用丰富的组件。这篇文章本身就是一个 MDX 文件——往下翻到「MDX 组件」部分，看看有哪些可用的组件！
+</Callout>
+
+## 写你的第一篇文章
+
+在 `content/` 目录中创建一个新的 `.mdx` 文件。每篇文章顶部需要 **frontmatter**：
+
+```mdx
+---
+title: 我的第一篇文章
+description: 文章的简短描述
+date: 2025-01-27
+tags: [技术, 教程]
+---
+
+你的 Markdown 内容...
+```
+
+### 支持的 Frontmatter 字段
+
+| 字段          | 必填 | 说明                                 |
+| ------------- | ---- | ------------------------------------ |
+| `title`       | 是   | 文章标题                             |
+| `description` | 是   | 简短摘要（用于 SEO）                 |
+| `date`        | 是   | 发布日期（YYYY-MM-DD）               |
+| `tags`        | 否   | 标签数组                             |
+| `authors`     | 否   | 作者数组                             |
+| `coverImage`  | 否   | 封面图路径（指向 `asset/` 中的图片） |
+| `draft`       | 否   | 设为 `true` 则不在生产环境显示       |
+
+## 格式示例
+
+### 文本样式
+
+你可以写 **粗体**、_斜体_、~~删除线~~ 和 `行内代码`。
+
+### 代码块
+
+```typescript
+function greet(name: string): string {
+  return `你好，${name}！欢迎使用 CitePo。`
+}
+
+console.log(greet('世界'))
+```
+
+### 列表
+
+- 用你喜欢的编辑器写作（VS Code、Cursor、Vim...）
+- 用 `npx citepo dev` 本地预览
+- 用 `npx citepo build` 构建
+- 推送到 Git 即可部署
+
+### 引用
+
+> 开始写博客最好的时间是昨天，
+> 其次是现在。
+
+### MDX 组件
+
+CitePo 提供了内置的 MDX 组件来丰富你的文章。以下是所有可用组件的展示：
+
+#### Callout（提示框）
+
+使用提示框突出重要信息：
+
+<Callout type="info">
+这是一个 **info** 提示框——适合补充说明。
+</Callout>
+
+<Callout type="tip">
+这是一个 **tip** 提示框——适合分享有用的建议。
+</Callout>
+
+<Callout type="warning">
+这是一个 **warning** 提示框——提醒读者注意潜在问题。
+</Callout>
+
+<Callout type="error">
+这是一个 **error** 提示框——标注关键问题或破坏性变更。
+</Callout>
+
+#### Card 和 CardGroup（卡片）
+
+用结构化的网格展示相关内容：
+
+<CardGroup cols={2}>
+  <Card title="用 MDX 写作" icon="pencil" href="https://citepo.com">
+    使用 Markdown + JSX 组件创作丰富内容。
+  </Card>
+  <Card title="Git 优先工作流" icon="git-branch" href="https://citepo.com">
+    推送到 Git，博客自动更新。
+  </Card>
+  <Card title="AI 原生" icon="sparkles" href="https://citepo.com">
+    自动生成 llms.txt 和结构化数据，让 AI 也能发现你的内容。
+  </Card>
+  <Card title="极致性能" icon="zap" href="https://citepo.com">
+    Astro 构建静态 HTML，Lighthouse 99+ 分。
+  </Card>
+</CardGroup>
+
+#### Accordion（手风琴）
+
+适合常见问题或可折叠内容：
+
+<AccordionGroup>
+  <Accordion title="需要安装什么吗？">
+    不需要！CitePo 通过 `npx` 运行——只需 `npx citepo new my-blog` 即可开始。无需全局安装。
+  </Accordion>
+  <Accordion title="可以用自己的域名吗？">
+    可以。CitePo 支持自定义域名。部署后在 CitePo 控制台绑定你的域名即可。
+  </Accordion>
+  <Accordion title="CitePo 免费吗？">
+    CitePo 为个人博客提供免费套餐。详情请查看 [citepo.com](https://citepo.com)。
+  </Accordion>
+</AccordionGroup>
+
+#### Badge（徽章）
+
+使用徽章进行标注和分类：
+
+<Badge variant="default">新功能</Badge> <Badge variant="secondary">测试版</Badge> <Badge variant="outline">开源</Badge>
+
+#### Steps（步骤）
+
+清晰展示操作步骤：
+
+<Steps>
+  <Step title="创建博客">
+    运行 `npx citepo new my-blog` 创建一个新项目。
+  </Step>
+  <Step title="撰写文章">
+    在 `content/` 中创建 `.mdx` 文件，添加 frontmatter 和内容。
+  </Step>
+  <Step title="本地预览">
+    运行 `npx citepo dev`，在浏览器中查看博客。
+  </Step>
+  <Step title="部署">
+    推送到 Git，CitePo 会自动构建和部署你的站点。
+  </Step>
+</Steps>
+
+#### CodeGroup（代码组）
+
+通过标签页切换展示多个代码片段：
+
+<CodeGroup>
+```bash npm
+npx citepo new my-blog
+```
+
+```bash pnpm
+pnpm dlx citepo new my-blog
+```
+</CodeGroup>
+
+## 下一步
+
+<Steps>
+  <Step title="编辑或创建文章">
+    编辑这篇文章或在 `content/` 中创建新文章。
+  </Step>
+  <Step title="自定义博客">
+    在 `blog.json` 中配置博客设置。
+  </Step>
+  <Step title="添加自定义样式">
+    在 `style.css` 中个性化你的设计。
+  </Step>
+  <Step title="本地预览">
+    运行 `npx citepo dev` 查看你的改动。
+  </Step>
+</Steps>
+
+祝写作愉快！

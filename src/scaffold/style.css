@@ -1,0 +1,12 @@
+/*
+ * Custom Styles
+ *
+ * This file loads AFTER the theme styles, so any rules here
+ * will override the theme defaults. Use it to customize colors,
+ * fonts, spacing, or any other visual aspects of your blog.
+ *
+ * Example:
+ *   :root {
+ *     --primary: #3b82f6;
+ *   }
+ */

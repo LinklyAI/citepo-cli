@@ -1,0 +1,47 @@
+---
+import { getCollection, render } from 'astro:content'
+import PostLayout from '../layouts/PostLayout.astro'
+import blogConfig from 'virtual:blog-config'
+import * as mdxComponents from '@mdx'
+import { isMultiLang, getPostSlug, getPostUrl } from '../lib/i18n.ts'
+
+export async function getStaticPaths() {
+  // Multi-lang: all posts are served under /[lang]/[...slug], not here
+  if (isMultiLang(blogConfig)) return []
+
+  // Single-lang: generate all posts at root level
+  const posts = await getCollection('blog', ({ data }) => !data.draft)
+  return posts.map((post) => ({
+    params: { slug: getPostSlug(post.id, blogConfig) },
+    props: { post },
+  }))
+}
+
+const { post } = Astro.props
+const lang = blogConfig.defaultLanguage
+const allPosts = await getCollection('blog', ({ data }) => !data.draft)
+const { Content, headings } = await render(post)
+
+// Compute prev/next posts
+const sortedPosts = allPosts.sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
+)
+const currentIndex = sortedPosts.findIndex((p) => p.id === post.id)
+const prevPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : undefined
+const nextPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : undefined
+---
+
+<PostLayout
+  title={post.data.title}
+  description={post.data.description}
+  date={post.data.date}
+  tags={post.data.tags}
+  authors={post.data.authors}
+  coverImage={post.data.coverImage || undefined}
+  headings={headings}
+  lang={lang}
+  prevPost={prevPost ? { title: prevPost.data.title, url: getPostUrl(prevPost.id, blogConfig) } : undefined}
+  nextPost={nextPost ? { title: nextPost.data.title, url: getPostUrl(nextPost.id, blogConfig) } : undefined}
+>
+  <Content components={mdxComponents} />
+</PostLayout>

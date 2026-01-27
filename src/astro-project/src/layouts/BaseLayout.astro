@@ -1,0 +1,173 @@
+---
+import '@theme/styles/global.css'
+import '@user-style'
+import Header from '@theme/components/Header.tsx'
+import Footer from '@theme/components/Footer.tsx'
+import blogConfig from 'virtual:blog-config'
+import { isMultiLang, getRssUrl } from '../lib/i18n.ts'
+
+interface Props {
+  title?: string
+  description?: string
+  ogImage?: string
+  type?: 'website' | 'article'
+  publishedTime?: string
+  authors?: string[]
+  tags?: string[]
+  lang?: string
+  alternateLanguages?: Record<string, string>
+}
+
+const {
+  title = blogConfig.name,
+  description = blogConfig.description,
+  ogImage = blogConfig.seo?.ogImage,
+  type = 'website',
+  publishedTime,
+  authors = [],
+  tags = [],
+  lang = blogConfig.defaultLanguage,
+  alternateLanguages = {},
+} = Astro.props
+
+const pageTitle = title === blogConfig.name ? title : `${title} - ${blogConfig.name}`
+const siteUrl = blogConfig.siteUrl
+const canonicalUrl = siteUrl ? `${siteUrl}${Astro.url.pathname}` : undefined
+const rssUrl = getRssUrl(lang, blogConfig)
+const multiLang = isMultiLang(blogConfig)
+
+// Build JSON-LD structured data
+function buildJsonLd() {
+  if (type === 'article') {
+    const data: Record<string, unknown> = {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: title,
+      description,
+    }
+    if (canonicalUrl) data.url = canonicalUrl
+    if (publishedTime) data.datePublished = publishedTime
+    if (authors.length > 0) {
+      data.author = authors.map((name) => ({ '@type': 'Person', name }))
+    }
+    if (tags.length > 0) data.keywords = tags.join(', ')
+    if (ogImage) data.image = ogImage
+    return data
+  }
+
+  const data: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: blogConfig.name,
+    description: blogConfig.description,
+  }
+  if (siteUrl) data.url = siteUrl
+  return data
+}
+
+// Build color override CSS
+function buildColorOverrides(): string | null {
+  const colors = blogConfig.colors
+  if (!colors) return null
+
+  const vars: string[] = []
+  if (colors.primary) vars.push(`--primary: ${colors.primary};`)
+  if (colors.background) vars.push(`--background: ${colors.background};`)
+  if (colors.foreground) vars.push(`--foreground: ${colors.foreground};`)
+  if (colors.muted) vars.push(`--muted: ${colors.muted};`)
+  if (colors.accent) vars.push(`--accent: ${colors.accent};`)
+
+  if (vars.length === 0) return null
+  return `:root { ${vars.join(' ')} }`
+}
+
+const colorOverrides = buildColorOverrides()
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {blogConfig.seo?.keywords && (
+      <meta name="keywords" content={blogConfig.seo.keywords.join(', ')} />
+    )}
+
+    {/* Open Graph */}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={type === 'article' ? 'article' : 'website'} />
+    {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+    <meta property="og:locale" content={lang} />
+
+    {/* Twitter Card */}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+
+    {/* Canonical URL */}
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+
+    {/* Alternate language links (SEO) */}
+    {multiLang && Object.entries(alternateLanguages).map(([altLang, altUrl]) => (
+      <link
+        rel="alternate"
+        hreflang={altLang}
+        href={siteUrl ? `${siteUrl}${altUrl}` : altUrl}
+      />
+    ))}
+    {multiLang && siteUrl && Object.keys(alternateLanguages).length > 0 && (
+      <link
+        rel="alternate"
+        hreflang="x-default"
+        href={`${siteUrl}${alternateLanguages[blogConfig.defaultLanguage] || '/'}`}
+      />
+    )}
+
+    {/* RSS discovery */}
+    <link rel="alternate" type="application/rss+xml" title={blogConfig.name} href={rssUrl} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    {/* JSON-LD structured data */}
+    <script type="application/ld+json" set:html={JSON.stringify(buildJsonLd())} />
+
+    {/* Color overrides from blog.json */}
+    {colorOverrides && <style set:html={colorOverrides} />}
+
+    {/* Dark mode init — prevent flash of unstyled content (FOUC) */}
+    <script is:inline>
+      ;(function () {
+        var stored = localStorage.getItem('theme')
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (stored === 'dark' || (!stored && prefersDark)) {
+          document.documentElement.classList.add('dark')
+        }
+        window.__toggleTheme = function () {
+          var html = document.documentElement
+          var isDark = html.classList.toggle('dark')
+          localStorage.setItem('theme', isDark ? 'dark' : 'light')
+        }
+      })()
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <Header
+      client:load
+      blogName={blogConfig.name}
+      navigation={blogConfig.navigation}
+      basePath={blogConfig.basePath}
+      currentLang={multiLang ? lang : undefined}
+      languages={multiLang ? blogConfig.languages : undefined}
+      translations={multiLang ? alternateLanguages : undefined}
+    />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer blogName={blogConfig.name} social={blogConfig.social} />
+  </body>
+</html>

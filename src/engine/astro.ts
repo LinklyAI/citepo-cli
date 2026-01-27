@@ -1,0 +1,149 @@
+import path from 'node:path'
+import fs from 'node:fs'
+import type { AstroInlineConfig } from 'astro'
+import type { Plugin } from 'vite'
+import type { BlogConfig } from './config.js'
+import { getPackageRoot } from '../cli/utils.js'
+
+const VIRTUAL_MODULE_ID = 'virtual:blog-config'
+const RESOLVED_VIRTUAL_MODULE_ID = '\0' + VIRTUAL_MODULE_ID
+
+/**
+ * Vite virtual module plugin: injects BlogConfig as `virtual:blog-config`.
+ * Astro pages can access it via `import config from 'virtual:blog-config'`.
+ */
+function blogConfigPlugin(blogConfig: BlogConfig): Plugin {
+  return {
+    name: 'citepo:blog-config',
+    resolveId(id: string) {
+      if (id === VIRTUAL_MODULE_ID) return RESOLVED_VIRTUAL_MODULE_ID
+    },
+    load(id: string) {
+      if (id === RESOLVED_VIRTUAL_MODULE_ID) {
+        return `export default ${JSON.stringify(blogConfig)}`
+      }
+    },
+  }
+}
+
+/**
+ * Vite plugin: resolves `@user-style` to the user's style.css path.
+ * Returns empty CSS if the file doesn't exist to avoid build errors.
+ */
+function userStylePlugin(userDir: string): Plugin {
+  const USER_STYLE_ID = '@user-style'
+  const RESOLVED_USER_STYLE_ID = '\0@user-style'
+  const stylePath = path.resolve(userDir, 'style.css')
+
+  return {
+    name: 'citepo:user-style',
+    resolveId(id: string) {
+      if (id === USER_STYLE_ID) {
+        if (fs.existsSync(stylePath)) return stylePath
+        return RESOLVED_USER_STYLE_ID
+      }
+    },
+    load(id: string) {
+      if (id === RESOLVED_USER_STYLE_ID) {
+        return '/* no user style.css found */'
+      }
+    },
+  }
+}
+
+export interface CreateAstroConfigOptions {
+  port?: number
+  outDir?: string
+}
+
+/**
+ * Generate Astro inline config for `citepo dev` and `citepo build`.
+ *
+ * @param blogConfig - Parsed blog.json configuration
+ * @param userDir - User's blog project root (contains blog.json, content/, asset/)
+ * @param options - Optional settings (port, outDir, etc.)
+ */
+export function createAstroConfig(
+  blogConfig: BlogConfig,
+  userDir: string,
+  options?: CreateAstroConfigOptions,
+): AstroInlineConfig {
+  const packageRoot = getPackageRoot()
+  const astroProjectRoot = path.resolve(packageRoot, 'src/astro-project')
+  const contentDir = path.resolve(userDir, 'content')
+  const publicDir = path.resolve(userDir, 'asset')
+  const outDir = options?.outDir
+    ? path.resolve(userDir, options.outDir)
+    : path.resolve(userDir, 'dist')
+
+  // Pass content directory path to content.config.ts via environment variable
+  process.env.CITEPO_CONTENT_DIR = contentDir
+  // Pass blog.json config (fallback channel; virtual module is primary)
+  process.env.CITEPO_BLOG_CONFIG = JSON.stringify(blogConfig)
+
+  return {
+    root: astroProjectRoot,
+    publicDir,
+    outDir,
+    base: blogConfig.basePath,
+    site: blogConfig.siteUrl,
+    configFile: false,
+    server: {
+      port: options?.port ?? 4321,
+    },
+    integrations: [
+      // Dynamically imported to avoid tsup bundling
+    ],
+    vite: {
+      plugins: [
+        blogConfigPlugin(blogConfig),
+        userStylePlugin(userDir),
+      ],
+      resolve: {
+        alias: {
+          '@theme': path.resolve(packageRoot, 'src/theme/clean'),
+          '@mdx': path.resolve(packageRoot, 'src/mdx-components'),
+        },
+      },
+    },
+  }
+}
+
+/**
+ * Dynamically load Astro integrations to avoid bundling with tsup.
+ * Called at runtime to ensure correct resolution from node_modules.
+ */
+export async function loadIntegrations() {
+  const [{ default: mdx }, { default: react }, { default: sitemap }, { default: tailwindVite }] =
+    await Promise.all([
+      import('@astrojs/mdx'),
+      import('@astrojs/react'),
+      import('@astrojs/sitemap'),
+      import('@tailwindcss/vite'),
+    ])
+
+  return { mdx, react, sitemap, tailwindVite }
+}
+
+/**
+ * Create full Astro config with dynamically loaded integrations and Tailwind plugin.
+ */
+export async function createFullAstroConfig(
+  blogConfig: BlogConfig,
+  userDir: string,
+  options?: CreateAstroConfigOptions,
+): Promise<AstroInlineConfig> {
+  const config = createAstroConfig(blogConfig, userDir, options)
+  const { mdx, react, sitemap, tailwindVite } = await loadIntegrations()
+
+  config.integrations = [mdx(), react(), sitemap()]
+
+  // Prepend Tailwind CSS v4 Vite plugin to the plugins list
+  const existingPlugins = (config.vite?.plugins ?? []) as Plugin[]
+  config.vite = {
+    ...config.vite,
+    plugins: [tailwindVite(), ...existingPlugins],
+  }
+
+  return config
+}

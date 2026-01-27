@@ -1,0 +1,140 @@
+---
+import BaseLayout from './BaseLayout.astro'
+import TableOfContents from '@theme/components/TableOfContents.tsx'
+import PostNavigation from '@theme/components/PostNavigation.tsx'
+import blogConfig from 'virtual:blog-config'
+import { isMultiLang, getLangHomeUrl, getTagsBaseUrl } from '../lib/i18n.ts'
+
+interface Heading {
+  depth: number
+  slug: string
+  text: string
+}
+
+interface PostLink {
+  title: string
+  url: string
+}
+
+interface Props {
+  title: string
+  description: string
+  date: Date
+  tags: string[]
+  authors: string[]
+  coverImage?: string
+  headings?: Heading[]
+  lang?: string
+  translations?: Record<string, string>
+  prevPost?: PostLink
+  nextPost?: PostLink
+}
+
+const {
+  title,
+  description,
+  date,
+  tags,
+  authors,
+  coverImage,
+  headings = [],
+  lang = blogConfig.defaultLanguage,
+  translations = {},
+  prevPost,
+  nextPost,
+} = Astro.props
+
+const formattedDate = date.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+})
+
+const homeUrl = getLangHomeUrl(lang, blogConfig)
+const tagsBaseUrl = getTagsBaseUrl(lang, blogConfig)
+const multiLang = isMultiLang(blogConfig)
+const hasHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3).length > 0
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  ogImage={coverImage}
+  type="article"
+  publishedTime={date.toISOString()}
+  authors={authors}
+  tags={tags}
+  lang={lang}
+  alternateLanguages={multiLang ? translations : undefined}
+>
+  <div class:list={['mx-auto px-4 py-12', hasHeadings ? 'max-w-5xl' : 'max-w-3xl']}>
+    <div class:list={[hasHeadings && 'xl:grid xl:grid-cols-[1fr_200px] xl:gap-8']}>
+      {/* Main content */}
+      <div class="max-w-3xl">
+        {/* Back button */}
+        <a
+          href={homeUrl}
+          class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
+          </svg>
+          Back to blog
+        </a>
+
+        {/* Post header */}
+        <header class="mb-10">
+          <h1 class="text-4xl font-bold tracking-tight text-foreground mb-4">
+            {title}
+          </h1>
+          <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <time datetime={date.toISOString()}>{formattedDate}</time>
+            {authors.length > 0 && (
+              <>
+                <span class="text-border">&middot;</span>
+                <span>{authors.join(', ')}</span>
+              </>
+            )}
+            {tags.length > 0 && (
+              <>
+                <span class="text-border">&middot;</span>
+                <div class="flex gap-1.5 flex-wrap">
+                  {tags.map((tag) => (
+                    <a
+                      href={`${tagsBaseUrl}/${tag}`}
+                      class="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {tag}
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </header>
+
+        {/* Cover image */}
+        {coverImage && (
+          <img
+            src={coverImage}
+            alt={title}
+            class="w-full rounded-lg mb-10 border border-border"
+          />
+        )}
+
+        {/* Post content */}
+        <article class="prose prose-neutral dark:prose-invert max-w-none">
+          <slot />
+        </article>
+
+        {/* Post navigation */}
+        <PostNavigation prev={prevPost} next={nextPost} />
+      </div>
+
+      {/* TOC sidebar */}
+      {hasHeadings && (
+        <TableOfContents client:load headings={headings} />
+      )}
+    </div>
+  </div>
+</BaseLayout>

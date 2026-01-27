@@ -1,0 +1,79 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import PostCard from '@theme/components/PostCard.tsx'
+import blogConfig from 'virtual:blog-config'
+import { isMultiLang, getAllLanguages, filterPostsByLang, getPostUrl, getLangHomeUrl } from '../../../lib/i18n.ts'
+
+export async function getStaticPaths() {
+  if (!isMultiLang(blogConfig)) return []
+
+  const allPosts = await getCollection('blog', ({ data }) => !data.draft)
+  const paths: { params: { lang: string; tag: string }; props: { lang: string; tag: string; posts: typeof allPosts } }[] = []
+
+  // Generate for ALL languages
+  for (const lang of getAllLanguages(blogConfig)) {
+    const langPosts = filterPostsByLang(allPosts, lang, blogConfig)
+    const tagSet = new Set<string>()
+    for (const post of langPosts) {
+      for (const tag of post.data.tags) {
+        tagSet.add(tag)
+      }
+    }
+
+    for (const tag of tagSet) {
+      paths.push({
+        params: { lang, tag },
+        props: {
+          lang,
+          tag,
+          posts: langPosts
+            .filter((post) => post.data.tags.includes(tag))
+            .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()),
+        },
+      })
+    }
+  }
+
+  return paths
+}
+
+const { lang, tag, posts } = Astro.props
+const homeUrl = getLangHomeUrl(lang, blogConfig)
+---
+
+<BaseLayout lang={lang} title={`#${tag}`} description={`Posts tagged with "${tag}"`}>
+  <div class="max-w-3xl mx-auto px-4 py-12">
+    <div class="mb-10">
+      <a
+        href={homeUrl}
+        class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
+        </svg>
+        All posts
+      </a>
+      <h1 class="text-3xl font-bold tracking-tight text-foreground">
+        #{tag}
+      </h1>
+      <p class="text-muted-foreground mt-2">
+        {posts.length} {posts.length === 1 ? 'post' : 'posts'}
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      {posts.map((post) => (
+        <PostCard
+          title={post.data.title}
+          description={post.data.description}
+          date={post.data.date.toISOString()}
+          tags={post.data.tags}
+          slug={post.id}
+          coverImage={post.data.coverImage || undefined}
+          url={getPostUrl(post.id, blogConfig)}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,132 @@
+---
+title: 为什么选择 CitePo 搭建博客
+description: 深入探讨为什么 CitePo 是开发者和 AI 初创团队搭建博客的理想选择 —— 快速、Git 驱动、零负担。
+date: 2025-01-27
+tags: [citepo, 博客, 开发工具]
+authors: [CitePo]
+coverImage: ''
+draft: false
+---
+
+如果你是开发者或 AI 初创团队的成员，你一定深有体会：你需要一个博客来分享动态、建立品牌影响力、获取自然流量 —— 但搭建博客不应该像造一个新产品那么复杂。
+
+这正是 CitePo 存在的理由。
+
+## 现有方案的问题
+
+### WordPress / Ghost
+
+功能强大的 CMS 平台，但带来的负担也不小：
+
+- **运维成本** —— 需要服务器、数据库，持续维护
+- **安全隐患** —— 频繁的更新和漏洞修复
+- **大材小用** —— 你只是想发布 Markdown，而不是管理一个 CMS
+
+<Callout type="warning">
+传统 CMS 需要持续的服务器维护和安全补丁——这些精力本应用来写内容。
+</Callout>
+
+### 静态站点生成器（Hugo、Jekyll、Gatsby）
+
+更接近开发者想要的，但仍有摩擦：
+
+- **复杂配置** —— 主题、插件、构建流水线
+- **依赖地狱** —— 数百个包，频繁出问题
+- **仓库 90% 都是引擎代码** —— 真正的内容被框架代码淹没
+
+<Callout type="warning">
+使用 SSG，你最终在维护一套复杂的构建系统，而不是专注于内容本身。
+</Callout>
+
+### Medium / Substack
+
+容易上手，但：
+
+- **没有所有权** —— 内容寄存在别人的平台上
+- **品牌受限** —— 和平台上所有博客长得一样
+- **SEO 受限** —— 你在为平台的域名做贡献，而不是自己的
+
+<Callout type="warning">
+托管平台用便利换控制权——你的内容、品牌和 SEO 都属于别人。
+</Callout>
+
+## CitePo 有何不同
+
+<CardGroup cols={2}>
+  <Card title="纯内容仓库" icon="folder" href="https://citepo.com">
+    没有 `package.json`，没有 `node_modules`，没有模板代码。Git 仓库只包含文章、配置和资源。
+  </Card>
+  <Card title="Git 优先工作流" icon="git-branch" href="https://citepo.com">
+    用任意编辑器写作，`npx citepo dev` 预览，`git push` 部署。支持 AI 助手、PR 审查和团队协作。
+  </Card>
+  <Card title="AI 原生设计" icon="sparkles" href="https://citepo.com">
+    自动生成 `llms.txt`、`skill.md` 和 JSON-LD 结构化数据——AI 助手也能发现你的博客。
+  </Card>
+  <Card title="开箱即用的精美设计" icon="palette" href="https://citepo.com">
+    内置 `clean` 主题，暖中性色调、暗色模式、响应式设计，完美支持中英日三语排版。
+  </Card>
+  <Card title="极致性能" icon="zap" href="https://citepo.com">
+    Astro 构建静态 HTML，Lighthouse 99+，即时加载，极小 JavaScript 体积。
+  </Card>
+  <Card title="SEO 一步到位" icon="search" href="https://citepo.com">
+    自动生成 sitemap、robots.txt、RSS、Open Graph、Twitter Cards、Canonical URL 和 JSON-LD。
+  </Card>
+</CardGroup>
+
+## CitePo 适合谁？
+
+<AccordionGroup>
+  <Accordion title="AI 初创团队">
+    需要博客来建立权威、分享产品动态？CitePo 让你几秒内从零到发布，还有 `llms.txt` 等 AI 原生特性，让你的内容被 AI 助手发现。
+  </Accordion>
+  <Accordion title="开发者布道师">
+    想要无摩擦地发布技术内容？用你喜欢的编辑器写作，MDX 实现丰富排版，通过 Git 部署——你已经熟悉的工作流。
+  </Accordion>
+  <Accordion title="独立开发者">
+    想要专业博客但不想承担运维？无需管理服务器，无需维护数据库，无需更新 CMS。写完推送即可。
+  </Accordion>
+  <Accordion title="喜欢 Markdown 的所有人">
+    如果你更喜欢用 Markdown 写作而不是点击 CMS 界面，CitePo 就是为你打造的。纯内容，零冗余。
+  </Accordion>
+</AccordionGroup>
+
+## 快速开始
+
+创建博客只需几步：
+
+<Steps>
+  <Step title="创建博客">
+    运行脚手架命令生成新博客项目：
+    ```bash
+    npx citepo new my-blog
+    ```
+  </Step>
+  <Step title="进入项目目录">
+    ```bash
+    cd my-blog
+    ```
+  </Step>
+  <Step title="启动开发服务器">
+    本地预览你的博客：
+    ```bash
+    npx citepo dev
+    ```
+  </Step>
+</Steps>
+
+就这么简单。无需注册账号，无需信用卡，无需配置向导。直接开始写作。
+
+## 未来规划
+
+CitePo 在持续进化中，以下是路线图：
+
+- <Badge variant="default">计划中</Badge> **自定义域名** —— 将你的域名指向博客
+- <Badge variant="default">计划中</Badge> **数据分析** —— 隐私友好的访客统计
+- <Badge variant="secondary">远期</Badge> **更多主题** —— 更多设计选择
+- <Badge variant="secondary">远期</Badge> **多作者** —— 团队博客与作者档案
+
+我们在打造自己一直想要的博客平台。如果你也有同感，试试 CitePo 吧。
+
+---
+
+_由 [CitePo](https://citepo.com) 驱动 —— 为开发者打造的博客平台。_

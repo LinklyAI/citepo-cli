@@ -1,0 +1,69 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import PostCard from '@theme/components/PostCard.tsx'
+import Pagination from '@theme/components/Pagination.tsx'
+import blogConfig from 'virtual:blog-config'
+import { isMultiLang, getPostUrl, getLangHomeUrl, getPaginationBaseUrl } from '../lib/i18n.ts'
+import { paginatePosts } from '../lib/pagination.ts'
+
+// Multi-lang: redirect root / to /{defaultLang}/
+if (isMultiLang(blogConfig)) {
+  return Astro.redirect(getLangHomeUrl(blogConfig.defaultLanguage, blogConfig))
+}
+
+// Single-lang: show all posts
+const allPosts = await getCollection('blog', ({ data }) => !data.draft)
+const sortedPosts = allPosts.sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
+)
+
+const lang = blogConfig.defaultLanguage
+const { items, totalPages, currentPage } = paginatePosts(sortedPosts, 1, blogConfig.postsPerPage)
+const homeUrl = getLangHomeUrl(lang, blogConfig)
+const paginationBase = getPaginationBaseUrl(lang, blogConfig)
+---
+
+<BaseLayout lang={lang}>
+  <div class="max-w-3xl mx-auto px-4 py-12">
+    {/* Blog title section */}
+    <div class="text-center mb-12">
+      <h1 class="text-3xl font-bold tracking-tight text-foreground mb-3">
+        {blogConfig.name}
+      </h1>
+      {blogConfig.description && (
+        <p class="text-muted-foreground text-lg">
+          {blogConfig.description}
+        </p>
+      )}
+    </div>
+
+    {/* Post list */}
+    <div class="flex flex-col gap-2">
+      {items.map((post) => (
+        <PostCard
+          title={post.data.title}
+          description={post.data.description}
+          date={post.data.date.toISOString()}
+          tags={post.data.tags}
+          slug={post.id}
+          coverImage={post.data.coverImage || undefined}
+          url={getPostUrl(post.id, blogConfig)}
+        />
+      ))}
+    </div>
+
+    {sortedPosts.length === 0 && (
+      <p class="text-center text-muted-foreground py-16">
+        No posts yet. Create your first post in the <code>content/</code> directory.
+      </p>
+    )}
+
+    <Pagination
+      currentPage={currentPage}
+      totalPages={totalPages}
+      homeUrl={homeUrl}
+      paginationBase={paginationBase}
+    />
+  </div>
+</BaseLayout>

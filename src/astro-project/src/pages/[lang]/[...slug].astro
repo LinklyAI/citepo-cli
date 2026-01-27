@@ -1,0 +1,59 @@
+---
+import { getCollection, render } from 'astro:content'
+import PostLayout from '../../layouts/PostLayout.astro'
+import blogConfig from 'virtual:blog-config'
+import * as mdxComponents from '@mdx'
+import { isMultiLang, getAllLanguages, filterPostsByLang, getPostSlug, getPostUrl, getTranslations } from '../../lib/i18n.ts'
+
+export async function getStaticPaths() {
+  if (!isMultiLang(blogConfig)) return []
+
+  const allPosts = await getCollection('blog', ({ data }) => !data.draft)
+  const paths: { params: { lang: string; slug: string }; props: { post: typeof allPosts[number]; lang: string } }[] = []
+
+  // Generate for ALL languages
+  for (const lang of getAllLanguages(blogConfig)) {
+    const langPosts = filterPostsByLang(allPosts, lang, blogConfig)
+    for (const post of langPosts) {
+      paths.push({
+        params: { lang, slug: getPostSlug(post.id, blogConfig) },
+        props: { post, lang },
+      })
+    }
+  }
+
+  return paths
+}
+
+const { post, lang } = Astro.props
+const allPosts = await getCollection('blog', ({ data }) => !data.draft)
+const { Content, headings } = await render(post)
+
+// Compute translations
+const translations = getTranslations(post.id, allPosts, blogConfig)
+
+// Compute prev/next posts within the same language
+const langPosts = filterPostsByLang(allPosts, lang, blogConfig)
+const sortedPosts = langPosts.sort(
+  (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
+)
+const currentIndex = sortedPosts.findIndex((p) => p.id === post.id)
+const prevPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : undefined
+const nextPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : undefined
+---
+
+<PostLayout
+  title={post.data.title}
+  description={post.data.description}
+  date={post.data.date}
+  tags={post.data.tags}
+  authors={post.data.authors}
+  coverImage={post.data.coverImage || undefined}
+  headings={headings}
+  lang={lang}
+  translations={translations}
+  prevPost={prevPost ? { title: prevPost.data.title, url: getPostUrl(prevPost.id, blogConfig) } : undefined}
+  nextPost={nextPost ? { title: nextPost.data.title, url: getPostUrl(nextPost.id, blogConfig) } : undefined}
+>
+  <Content components={mdxComponents} />
+</PostLayout>

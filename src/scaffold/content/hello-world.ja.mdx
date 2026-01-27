@@ -1,0 +1,179 @@
+---
+title: ハローワールド
+description: 新しいブログへようこそ。これは CitePo で生成された最初の投稿です。自由に編集・削除してください。
+date: 2025-01-27
+tags: [はじめに, スタート]
+authors: [CitePo]
+coverImage: ''
+draft: false
+---
+
+新しいブログへようこそ！これは [CitePo](https://citepo.com) で生成されたサンプル記事です。
+
+## CitePo とは？
+
+CitePo は軽量なブログ公開プラットフォームです。**MDX**（Markdown + JSX）で記事を書き、Git にプッシュすれば、サイトが自動的にビルド・デプロイされます。
+
+<Callout type="tip">
+MDX を使うと、Markdown の中でリッチなコンポーネントを使用できます。この記事自体が MDX ファイルです。「MDX コンポーネント」セクションまでスクロールして、使えるコンポーネントをチェックしましょう！
+</Callout>
+
+## 最初の記事を書く
+
+`content/` ディレクトリに新しい `.mdx` ファイルを作成してください。各記事の先頭には **frontmatter** が必要です：
+
+```mdx
+---
+title: 私の最初の記事
+description: 記事の簡単な説明
+date: 2025-01-27
+tags: [技術, チュートリアル]
+---
+
+Markdown コンテンツ...
+```
+
+## フォーマット例
+
+### テキストスタイル
+
+**太字**、_イタリック_、~~取り消し線~~、`インラインコード` が使えます。
+
+### コードブロック
+
+```typescript
+function greet(name: string): string {
+  return `こんにちは、${name}！CitePo へようこそ。`
+}
+
+console.log(greet('世界'))
+```
+
+### リスト
+
+- お好みのエディタで執筆（VS Code、Cursor、Vim...）
+- `npx citepo dev` でローカルプレビュー
+- `npx citepo build` でビルド
+- Git にプッシュしてデプロイ
+
+### 引用
+
+> ブログを始めるベストなタイミングは昨日だった。
+> 次にベストなのは今日だ。
+
+### MDX コンポーネント
+
+CitePo には記事を豊かにする組み込み MDX コンポーネントがあります。利用可能なコンポーネントをすべてご紹介します：
+
+#### Callout（コールアウト）
+
+重要な情報を目立たせるために使います：
+
+<Callout type="info">
+**info** コールアウト — 補足情報に最適です。
+</Callout>
+
+<Callout type="tip">
+**tip** コールアウト — 役立つアドバイスを共有できます。
+</Callout>
+
+<Callout type="warning">
+**warning** コールアウト — 潜在的な問題を読者に警告します。
+</Callout>
+
+<Callout type="error">
+**error** コールアウト — 重大な問題や破壊的変更を強調します。
+</Callout>
+
+#### Card と CardGroup（カード）
+
+関連するアイテムを構造化されたグリッドで表示：
+
+<CardGroup cols={2}>
+  <Card title="MDX で執筆" icon="pencil" href="https://citepo.com">
+    Markdown + JSX コンポーネントでリッチなコンテンツを作成。
+  </Card>
+  <Card title="Git ファーストワークフロー" icon="git-branch" href="https://citepo.com">
+    Git にプッシュするだけでブログが自動更新。
+  </Card>
+  <Card title="AI ネイティブ" icon="sparkles" href="https://citepo.com">
+    llms.txt と構造化データを自動生成。AI からも発見可能に。
+  </Card>
+  <Card title="高速パフォーマンス" icon="zap" href="https://citepo.com">
+    Astro で静的 HTML をビルド。Lighthouse スコア 99+。
+  </Card>
+</CardGroup>
+
+#### Accordion（アコーディオン）
+
+FAQ や折りたたみコンテンツに最適：
+
+<AccordionGroup>
+  <Accordion title="何かインストールする必要はありますか？">
+    いいえ！CitePo は `npx` で動作します。`npx citepo new my-blog` を実行するだけで始められます。グローバルインストールは不要です。
+  </Accordion>
+  <Accordion title="独自ドメインは使えますか？">
+    はい。CitePo はカスタムドメインをサポートしています。デプロイ後、CitePo ダッシュボードでドメインを接続できます。
+  </Accordion>
+  <Accordion title="CitePo は無料ですか？">
+    CitePo は個人ブログ向けの無料プランを提供しています。詳細は [citepo.com](https://citepo.com) をご覧ください。
+  </Accordion>
+</AccordionGroup>
+
+#### Badge（バッジ）
+
+ラベルやカテゴリの表示に使います：
+
+<Badge variant="default">新機能</Badge> <Badge variant="secondary">ベータ</Badge> <Badge variant="outline">オープンソース</Badge>
+
+#### Steps（ステップ）
+
+手順を明確に表示：
+
+<Steps>
+  <Step title="ブログを作成">
+    `npx citepo new my-blog` を実行して新しいプロジェクトを作成。
+  </Step>
+  <Step title="記事を書く">
+    `content/` に `.mdx` ファイルを作成し、frontmatter とコンテンツを追加。
+  </Step>
+  <Step title="ローカルプレビュー">
+    `npx citepo dev` を実行してブラウザで確認。
+  </Step>
+  <Step title="デプロイ">
+    Git にプッシュすると、CitePo が自動でビルド・デプロイします。
+  </Step>
+</Steps>
+
+#### CodeGroup（コードグループ）
+
+タブ切り替えで複数のコードスニペットを表示：
+
+<CodeGroup>
+```bash npm
+npx citepo new my-blog
+```
+
+```bash pnpm
+pnpm dlx citepo new my-blog
+```
+</CodeGroup>
+
+## 次のステップ
+
+<Steps>
+  <Step title="記事を編集・作成">
+    この記事を編集するか、`content/` に新しい記事を作成。
+  </Step>
+  <Step title="ブログをカスタマイズ">
+    `blog.json` でブログの設定を変更。
+  </Step>
+  <Step title="カスタムスタイルを追加">
+    `style.css` でデザインをカスタマイズ。
+  </Step>
+  <Step title="ローカルプレビュー">
+    `npx citepo dev` で変更を確認。
+  </Step>
+</Steps>
+
+楽しいライティングを！

@@ -1,0 +1,170 @@
+@import 'tailwindcss';
+
+/* ──────────────────────────────────────────────
+ * Light Mode — wabi warm tones
+ * ────────────────────────────────────────────── */
+:root {
+  --background: #faf9f7;
+  --foreground: #3d3935;
+  --primary: #e07a5f;
+  --primary-foreground: #ffffff;
+  --secondary: #f2ebe6;
+  --secondary-foreground: #5c554f;
+  --muted: #f0eeeb;
+  --muted-foreground: #8a8480;
+  --accent: #f2ebe6;
+  --accent-foreground: #5c554f;
+  --border: #e8e6e3;
+  --input: #e8e6e3;
+  --ring: #e07a5f;
+  --card: #ffffff;
+  --card-foreground: #3d3935;
+  --popover: #ffffff;
+  --popover-foreground: #3d3935;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --radius: 0.375rem;
+
+  /* Sugar-high code highlighting — light */
+  --sh-class: #5c6166;
+  --sh-identifier: #e07a5f;
+  --sh-sign: #8a8480;
+  --sh-string: #86b300;
+  --sh-keyword: #fa8d3e;
+  --sh-comment: #787b8099;
+  --sh-jsxliterals: #6c7834;
+  --sh-property: #e07a5f;
+  --sh-entity: #6c7834;
+}
+
+/* ──────────────────────────────────────────────
+ * Dark Mode
+ * ────────────────────────────────────────────── */
+.dark {
+  --background: #2b2624;
+  --foreground: #f0ede8;
+  --primary: #ff8c6b;
+  --primary-foreground: #1a1614;
+  --secondary: #3d3531;
+  --secondary-foreground: #d4cec8;
+  --muted: #352f2b;
+  --muted-foreground: #a09a94;
+  --accent: #3d3531;
+  --accent-foreground: #d4cec8;
+  --border: #4a423d;
+  --input: #4a423d;
+  --ring: #ff8c6b;
+  --card: #332d29;
+  --card-foreground: #f0ede8;
+  --popover: #332d29;
+  --popover-foreground: #f0ede8;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  /* Sugar-high code highlighting — dark */
+  --sh-class: #d4cec8;
+  --sh-identifier: #ff8c6b;
+  --sh-sign: #a09a94;
+  --sh-string: #aad94c;
+  --sh-keyword: #ffb454;
+  --sh-comment: #acb6bf8c;
+  --sh-jsxliterals: #95e6cb;
+  --sh-property: #ff8c6b;
+  --sh-entity: #95e6cb;
+}
+
+/* ──────────────────────────────────────────────
+ * Tailwind v4 Theme Integration
+ * ────────────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+
+  /* Font stacks */
+  --font-sans: 'Inter', 'Noto Sans SC', 'Noto Sans JP', ui-sans-serif, system-ui,
+    -apple-system, sans-serif;
+  --font-serif: 'Noto Serif', 'Noto Serif SC', 'Noto Serif JP', ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ──────────────────────────────────────────────
+ * Base Styles
+ * ────────────────────────────────────────────── */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ──────────────────────────────────────────────
+ * Prose Typography (article content area)
+ * ────────────────────────────────────────────── */
+.prose {
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-links: var(--primary);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted-foreground);
+  --tw-prose-bullets: var(--muted-foreground);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--foreground);
+  --tw-prose-quote-borders: var(--border);
+  --tw-prose-code: var(--foreground);
+  --tw-prose-pre-bg: var(--muted);
+  --tw-prose-pre-code: var(--foreground);
+  --tw-prose-th-borders: var(--border);
+  --tw-prose-td-borders: var(--border);
+}
+
+.prose a {
+  text-decoration-color: var(--primary);
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+
+.prose a:hover {
+  color: var(--primary);
+}
+
+.prose code:not(pre code) {
+  background-color: var(--muted);
+  border-radius: 0.25rem;
+  padding: 0.15em 0.35em;
+  font-size: 0.875em;
+}
+
+.prose pre {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.prose img {
+  border-radius: var(--radius);
+}
+
+.prose blockquote {
+  border-left-color: var(--primary);
+  font-style: normal;
+}

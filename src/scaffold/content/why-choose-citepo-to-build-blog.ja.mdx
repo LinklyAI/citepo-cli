@@ -1,0 +1,132 @@
+---
+title: なぜ CitePo でブログを構築するのか
+description: 開発者や AI スタートアップにとって CitePo が理想的なブログプラットフォームである理由を解説します。
+date: 2025-01-27
+tags: [citepo, ブログ, 開発ツール]
+authors: [CitePo]
+coverImage: ''
+draft: false
+---
+
+開発者や AI スタートアップのメンバーなら、こんな悩みがあるはずです：ブログで情報を発信し、ブランドを構築し、オーガニックトラフィックを増やしたい。でもブログの構築に、もう一つのプロダクトを作るような労力はかけたくない。
+
+それが CitePo が存在する理由です。
+
+## 既存ソリューションの問題点
+
+### WordPress / Ghost
+
+高機能な CMS プラットフォームですが、負担も大きいです：
+
+- **ホスティングの手間** — サーバー、データベース、継続的なメンテナンスが必要
+- **セキュリティの懸念** — 頻繁なアップデートと脆弱性パッチ
+- **大半のブログにはオーバースペック** — Markdown を公開したいだけなのに CMS を管理する必要がある
+
+<Callout type="warning">
+従来の CMS は継続的なサーバーメンテナンスとセキュリティパッチが必要です。その労力はコンテンツの執筆に使うべきです。
+</Callout>
+
+### 静的サイトジェネレーター（Hugo、Jekyll、Gatsby）
+
+開発者が求めるものに近いですが、まだ摩擦があります：
+
+- **複雑な設定** — テーマ、プラグイン、ビルドパイプライン
+- **重い依存関係** — 数百のパッケージ、頻繁な破壊
+- **リポジトリの90%がエンジン** — コンテンツがフレームワークコードに埋もれる
+
+<Callout type="warning">
+SSG では、コンテンツに集中するのではなく、複雑なビルドシステムのメンテナンスに追われてしまいます。
+</Callout>
+
+### Medium / Substack
+
+始めるのは簡単ですが：
+
+- **所有権がない** — コンテンツは他社のプラットフォーム上にある
+- **ブランディングの制限** — プラットフォーム上の他のブログと同じ見た目
+- **SEO の制限** — 自分のドメインではなく、プラットフォームのドメイン権威を構築している
+
+<Callout type="warning">
+ホスト型プラットフォームは利便性とコントロールを交換します。コンテンツ、ブランド、SEO はすべて他者のものになります。
+</Callout>
+
+## CitePo の特徴
+
+<CardGroup cols={2}>
+  <Card title="純粋なコンテンツリポジトリ" icon="folder" href="https://citepo.com">
+    `package.json` も `node_modules` もボイラープレートもなし。Git リポジトリには記事、設定、アセットだけ。
+  </Card>
+  <Card title="Git ファーストワークフロー" icon="git-branch" href="https://citepo.com">
+    好きなエディタで執筆、`npx citepo dev` でプレビュー、`git push` でデプロイ。AI アシスタント、PR、チーム連携も可能。
+  </Card>
+  <Card title="AI ネイティブ設計" icon="sparkles" href="https://citepo.com">
+    `llms.txt`、`skill.md`、JSON-LD 構造化データを自動生成。AI アシスタントからもブログを発見できます。
+  </Card>
+  <Card title="美しいデザイン" icon="palette" href="https://citepo.com">
+    組み込み `clean` テーマ。暖かなニュートラルパレット、ダークモード、レスポンシブデザイン、多言語タイポグラフィ。
+  </Card>
+  <Card title="高速パフォーマンス" icon="zap" href="https://citepo.com">
+    Astro で静的 HTML をビルド。Lighthouse 99+、即座のページ読み込み、最小限の JavaScript。
+  </Card>
+  <Card title="SEO 完備" icon="search" href="https://citepo.com">
+    sitemap、robots.txt、RSS、Open Graph、Twitter Cards、Canonical URL、JSON-LD をすべて自動生成。
+  </Card>
+</CardGroup>
+
+## CitePo は誰のため？
+
+<AccordionGroup>
+  <Accordion title="AI スタートアップ">
+    権威を築き、プロダクトの更新情報を共有するブログが必要ですか？CitePo なら数秒でゼロから公開まで。`llms.txt` などの AI ネイティブ機能で、AI アシスタントからもコンテンツを発見可能に。
+  </Accordion>
+  <Accordion title="デベロッパーアドボケイト">
+    技術コンテンツを摩擦なく公開したいですか？好きなエディタで執筆、MDX でリッチなフォーマット、Git でデプロイ — 既に知っているワークフローです。
+  </Accordion>
+  <Accordion title="インディーハッカー">
+    オーバーヘッドなしでプロフェッショナルなブログが欲しいですか？サーバー管理不要、データベースメンテナンス不要、CMS アップデート不要。書いてプッシュするだけ。
+  </Accordion>
+  <Accordion title="Markdown を好む すべての人">
+    CMS のインターフェースをクリックするより Markdown で書く方が好きなら、CitePo はあなたのために作られました。純粋なコンテンツ、ゼロブロート。
+  </Accordion>
+</AccordionGroup>
+
+## クイックスタート
+
+ブログの作成はわずか数ステップ：
+
+<Steps>
+  <Step title="ブログを作成">
+    スキャフォールドコマンドで新しいブログプロジェクトを生成：
+    ```bash
+    npx citepo new my-blog
+    ```
+  </Step>
+  <Step title="プロジェクトディレクトリに移動">
+    ```bash
+    cd my-blog
+    ```
+  </Step>
+  <Step title="開発サーバーを起動">
+    ブログをローカルでプレビュー：
+    ```bash
+    npx citepo dev
+    ```
+  </Step>
+</Steps>
+
+以上です。アカウント登録不要、クレジットカード不要、設定ウィザード不要。すぐに書き始められます。
+
+## 今後のロードマップ
+
+CitePo は活発に進化中です：
+
+- <Badge variant="default">計画中</Badge> **カスタムドメイン** — 独自ドメインをブログに接続
+- <Badge variant="default">計画中</Badge> **アナリティクス** — プライバシー重視の訪問者追跡
+- <Badge variant="secondary">将来</Badge> **テーマ追加** — デザインオプションの拡充
+- <Badge variant="secondary">将来</Badge> **マルチオーサー** — チームブログと著者プロフィール
+
+私たちは自分たちがずっと欲しかったブログプラットフォームを構築しています。同じ思いなら、ぜひ CitePo をお試しください。
+
+---
+
+_[CitePo](https://citepo.com) — 開発者のためのブログプラットフォーム_
