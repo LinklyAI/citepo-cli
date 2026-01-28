@@ -52,6 +52,20 @@ function userStylePlugin(userDir: string): Plugin {
   }
 }
 
+/**
+ * Temporarily switch process.cwd() to citepo's package root so that
+ * Astro's SSR intermediate files (.astro/) are written inside the package tree,
+ * where Node.js ESM resolution can find dependencies like react.
+ *
+ * Returns a restore function that resets cwd to the original value.
+ */
+export function withPackageCwd(): () => void {
+  const originalCwd = process.cwd()
+  const packageRoot = getPackageRoot()
+  process.chdir(packageRoot)
+  return () => process.chdir(originalCwd)
+}
+
 export interface CreateAstroConfigOptions {
   port?: number
   outDir?: string

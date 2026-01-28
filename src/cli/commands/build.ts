@@ -2,7 +2,7 @@ import path from 'node:path'
 import { readdir, stat } from 'node:fs/promises'
 import { Command } from 'commander'
 import { loadBlogConfig } from '../../engine/config.js'
-import { createFullAstroConfig } from '../../engine/astro.js'
+import { createFullAstroConfig, withPackageCwd } from '../../engine/astro.js'
 import { scanMdxSecurity } from '../../engine/security.js'
 import { runPostBuild } from '../../engine/post-build.js'
 import { handleCommandError } from '../error.js'
@@ -61,9 +61,14 @@ export const buildCommand = new Command('build')
       siteUrl,
     })
 
-    // Run Astro build
+    // Run Astro build (switch cwd to package root so .astro/ SSR files can resolve deps)
     const { build } = await import('astro')
-    await build(astroConfig)
+    const restoreCwd = withPackageCwd()
+    try {
+      await build(astroConfig)
+    } finally {
+      restoreCwd()
+    }
 
     // Post-build: generate additional artifacts
     const postBuildResult = await runPostBuild(blogConfig, contentDir, resolvedOutDir, siteUrl)
