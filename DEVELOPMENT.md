@@ -86,6 +86,8 @@ CLI Commands (src/cli/)
                                                          → engine/post-build → generators/
 ```
 
+> `ctp` is registered as a short alias for `citepo`. Both commands are identical.
+
 **Key design decisions:**
 
 - **Engine is CLI-agnostic**: The `engine/` directory contains pure logic with no CLI dependencies. This makes functions easy to test and potentially reusable.

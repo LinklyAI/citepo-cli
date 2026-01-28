@@ -4,11 +4,13 @@
   "description": "A lightweight blog publishing CLI powered by Astro",
   "type": "module",
   "bin": {
-    "citepo": "dist/cli/index.js"
+    "citepo": "dist/cli/index.js",
+    "ctp": "dist/cli/index.js"
   },
   "files": [
     "dist/",
-    "src/astro-project/",
+    "src/astro-project/src/",
+    "src/astro-project/tsconfig.json",
     "src/theme/",
     "src/mdx-components/",
     "src/scaffold/"
@@ -22,7 +24,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "schema:generate": "tsx src/engine/schema-cli.ts"
+    "schema:generate": "tsx src/engine/schema-cli.ts",
+    "generate:starter": "tsx scripts/generate-starter.ts"
   },
   "keywords": [
     "blog",
