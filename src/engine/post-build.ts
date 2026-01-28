@@ -19,6 +19,7 @@ export async function runPostBuild(
   blogConfig: BlogConfig,
   contentDir: string,
   outDir: string,
+  siteUrl?: string,
 ): Promise<PostBuildResult> {
   const posts = await readAllPosts(contentDir, {
     defaultLanguage: blogConfig.defaultLanguage,
@@ -28,7 +29,7 @@ export async function runPostBuild(
   let totalSize = 0
 
   // Always generate robots.txt
-  const robotsTxt = generateRobotsTxt(blogConfig.siteUrl)
+  const robotsTxt = generateRobotsTxt(siteUrl)
   const robotsPath = path.join(outDir, 'robots.txt')
   await writeFile(robotsPath, robotsTxt, 'utf-8')
   generatedFiles.push('robots.txt')
@@ -36,7 +37,7 @@ export async function runPostBuild(
 
   // Generate llms.txt + llms-full.txt if enabled
   if (blogConfig.llmsText) {
-    const llmsTxt = generateLlmsTxt(blogConfig, posts, blogConfig.siteUrl)
+    const llmsTxt = generateLlmsTxt(blogConfig, posts, siteUrl)
     const llmsPath = path.join(outDir, 'llms.txt')
     await writeFile(llmsPath, llmsTxt, 'utf-8')
     generatedFiles.push('llms.txt')

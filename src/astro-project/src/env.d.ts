@@ -2,7 +2,7 @@
 
 declare module 'virtual:blog-config' {
   import type { BlogConfig } from '../../engine/config.js'
-  const config: BlogConfig
+  const config: BlogConfig & { siteUrl?: string }
   export default config
 }
 

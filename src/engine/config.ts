@@ -64,7 +64,6 @@ export const BlogConfigSchema = z.object({
   navigation: z.array(NavLinkSchema).optional(),
   social: SocialSchema,
   basePath: z.string().default('/'),
-  siteUrl: z.string().url().optional(),
   rss: z.boolean().default(true),
   sitemap: z.boolean().default(true),
   llmsText: z.boolean().default(true),

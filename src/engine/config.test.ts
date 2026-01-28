@@ -16,7 +16,6 @@ describe('validateBlogConfig', () => {
       defaultLanguage: 'en',
       languages: ['en', 'zh'],
       basePath: '/blog',
-      siteUrl: 'https://example.com',
       rss: true,
       sitemap: true,
       llmsText: true,
@@ -45,10 +44,6 @@ describe('validateBlogConfig', () => {
 
   it('should reject invalid defaultLanguage', () => {
     expect(() => validateBlogConfig({ name: 'test', defaultLanguage: 'fr' })).toThrow(ZodError)
-  })
-
-  it('should reject invalid siteUrl', () => {
-    expect(() => validateBlogConfig({ name: 'test', siteUrl: 'not-a-url' })).toThrow(ZodError)
   })
 
   it('should reject postsPerPage = 0', () => {

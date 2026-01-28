@@ -27,13 +27,11 @@ export const buildCommand = new Command('build')
       handleCommandError(err, `load blog.json in ${userDir}`)
     }
 
-    // Override basePath / siteUrl if specified via CLI
+    // Override basePath if specified via CLI
     if (options.basePath) {
       blogConfig.basePath = options.basePath
     }
-    if (options.siteUrl) {
-      blogConfig.siteUrl = options.siteUrl
-    }
+    const siteUrl = options.siteUrl
 
     const contentDir = path.resolve(userDir, 'content')
     const resolvedOutDir = path.resolve(userDir, options.outDir)
@@ -60,6 +58,7 @@ export const buildCommand = new Command('build')
     // Generate Astro config
     const astroConfig = await createFullAstroConfig(blogConfig, userDir, {
       outDir: options.outDir,
+      siteUrl,
     })
 
     // Run Astro build
@@ -67,7 +66,7 @@ export const buildCommand = new Command('build')
     await build(astroConfig)
 
     // Post-build: generate additional artifacts
-    const postBuildResult = await runPostBuild(blogConfig, contentDir, resolvedOutDir)
+    const postBuildResult = await runPostBuild(blogConfig, contentDir, resolvedOutDir, siteUrl)
 
     // Collect output stats and print build summary
     const duration = ((Date.now() - startTime) / 1000).toFixed(1)

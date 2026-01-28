@@ -12,7 +12,7 @@ const RESOLVED_VIRTUAL_MODULE_ID = '\0' + VIRTUAL_MODULE_ID
  * Vite virtual module plugin: injects BlogConfig as `virtual:blog-config`.
  * Astro pages can access it via `import config from 'virtual:blog-config'`.
  */
-function blogConfigPlugin(blogConfig: BlogConfig): Plugin {
+function blogConfigPlugin(blogConfig: BlogConfig, siteUrl?: string): Plugin {
   return {
     name: 'citepo:blog-config',
     resolveId(id: string) {
@@ -20,7 +20,8 @@ function blogConfigPlugin(blogConfig: BlogConfig): Plugin {
     },
     load(id: string) {
       if (id === RESOLVED_VIRTUAL_MODULE_ID) {
-        return `export default ${JSON.stringify(blogConfig)}`
+        const data = siteUrl ? { ...blogConfig, siteUrl } : blogConfig
+        return `export default ${JSON.stringify(data)}`
       }
     },
   }
@@ -54,6 +55,7 @@ function userStylePlugin(userDir: string): Plugin {
 export interface CreateAstroConfigOptions {
   port?: number
   outDir?: string
+  siteUrl?: string
 }
 
 /**
@@ -79,14 +81,17 @@ export function createAstroConfig(
   // Pass content directory path to content.config.ts via environment variable
   process.env.CITEPO_CONTENT_DIR = contentDir
   // Pass blog.json config (fallback channel; virtual module is primary)
-  process.env.CITEPO_BLOG_CONFIG = JSON.stringify(blogConfig)
+  process.env.CITEPO_BLOG_CONFIG = JSON.stringify({
+    ...blogConfig,
+    ...(options?.siteUrl ? { siteUrl: options.siteUrl } : {}),
+  })
 
   return {
     root: astroProjectRoot,
     publicDir,
     outDir,
     base: blogConfig.basePath,
-    site: blogConfig.siteUrl,
+    site: options?.siteUrl,
     configFile: false,
     server: {
       port: options?.port ?? 4321,
@@ -96,7 +101,7 @@ export function createAstroConfig(
     ],
     vite: {
       plugins: [
-        blogConfigPlugin(blogConfig),
+        blogConfigPlugin(blogConfig, options?.siteUrl),
         userStylePlugin(userDir),
       ],
       resolve: {
