@@ -36,6 +36,17 @@ const canonicalUrl = siteUrl ? `${siteUrl}${Astro.url.pathname}` : undefined
 const rssUrl = getRssUrl(lang, blogConfig)
 const multiLang = isMultiLang(blogConfig)
 
+// Resolve OG image: use provided ogImage, or auto-generate dynamic URL via /og-image.png
+const resolvedOgImage = ogImage
+  ? (siteUrl && !ogImage.startsWith('http') ? `${siteUrl}${ogImage}` : ogImage)
+  : siteUrl
+    ? `${siteUrl}/og-image.png?${new URLSearchParams({
+        title: title ?? blogConfig.name,
+        ...(authors.length > 0 ? { author: authors[0] } : {}),
+        site: blogConfig.name,
+      }).toString()}`
+    : undefined
+
 // Build JSON-LD structured data
 function buildJsonLd() {
   if (type === 'article') {
@@ -51,7 +62,7 @@ function buildJsonLd() {
       data.author = authors.map((name) => ({ '@type': 'Person', name }))
     }
     if (tags.length > 0) data.keywords = tags.join(', ')
-    if (ogImage) data.image = ogImage
+    if (resolvedOgImage) data.image = resolvedOgImage
     return data
   }
 
@@ -91,15 +102,15 @@ const colorOverrides = buildColorOverrides()
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <title>{pageTitle}</title>
-    <meta name="description" content={description} />
+    {description && <meta name="description" content={description} />}
     {blogConfig.seo?.keywords && (
       <meta name="keywords" content={blogConfig.seo.keywords.join(', ')} />
     )}
 
     {/* Open Graph */}
-    {ogImage && <meta property="og:image" content={ogImage} />}
+    {resolvedOgImage && <meta property="og:image" content={resolvedOgImage} />}
     <meta property="og:title" content={pageTitle} />
-    <meta property="og:description" content={description} />
+    {description && <meta property="og:description" content={description} />}
     <meta property="og:type" content={type === 'article' ? 'article' : 'website'} />
     {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
     <meta property="og:locale" content={lang} />
@@ -107,7 +118,7 @@ const colorOverrides = buildColorOverrides()
     {/* Twitter Card */}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={pageTitle} />
-    <meta name="twitter:description" content={description} />
+    {description && <meta name="twitter:description" content={description} />}
 
     {/* Canonical URL */}
     {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
