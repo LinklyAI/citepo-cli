@@ -14,7 +14,7 @@ This is the content.`
     const result = parseFrontmatter(raw)
     expect(result).toBeDefined()
     expect(result!.frontmatter.title).toBe('Hello World')
-    expect(result!.frontmatter.date).toBe('2025-01-01')
+    expect(result!.frontmatter.date).toEqual(new Date('2025-01-01'))
     expect(result!.frontmatter.tags).toEqual(['tech', 'blog'])
     expect(result!.content).toBe('This is the content.')
   })
