@@ -35,11 +35,11 @@ const paginationBase = getPaginationBaseUrl(lang, blogConfig)
     <HeroBanner image={blogConfig.hero?.image} alt={blogConfig.name} />
 
     <div class="text-center mb-12">
-      <h1 class="text-3xl font-bold tracking-tight text-foreground mb-3">
+      <h1 class="page-title mb-3">
         {blogConfig.name}
       </h1>
       {blogConfig.description && (
-        <p class="text-muted-foreground text-lg">
+        <p class="page-description">
           {blogConfig.description}
         </p>
       )}

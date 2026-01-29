@@ -26,14 +26,17 @@ export default function PostCard({
   })
 
   return (
-    <a href={href} className="group flex items-baseline no-underline -mx-3 px-3 py-2 rounded-md hover:bg-muted/50 transition-colors">
-      <span className="text-foreground group-hover:text-foreground/80 transition-colors">
+    <a
+      href={href}
+      className="group flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 no-underline -mx-3 px-3 py-2 rounded-md hover:bg-muted/50 transition-colors"
+    >
+      <span className="text-neutral-900 dark:text-neutral-100 tracking-tight">
         {title}
       </span>
-      <span className="flex-1 mx-3 border-b border-dotted border-border" />
+      <span className="h-[0px] border-b border-dashed border-border hidden md:inline-block flex-1" />
       <time
         dateTime={date}
-        className="text-sm text-muted-foreground whitespace-nowrap tabular-nums"
+        className="text-sm text-muted-foreground whitespace-nowrap tabular-nums font-extralight"
       >
         {formattedDate}
       </time>

@@ -1,5 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
+import matter from 'gray-matter'
 
 export interface PostData {
   slug: string
@@ -89,77 +90,13 @@ export interface ParsedFrontmatter {
 
 /**
  * Parse frontmatter from raw MDX content.
- * Hand-written parser for YAML-like key: value pairs.
+ * Uses gray-matter for robust YAML frontmatter parsing.
  */
 export function parseFrontmatter(raw: string): ParsedFrontmatter | undefined {
-  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/)
-  if (!match) return undefined
-
-  const frontmatterBlock = match[1]!
-  const content = raw.slice(match[0].length).trim()
-  const frontmatter: Record<string, unknown> = {}
-
-  const lines = frontmatterBlock.split('\n')
-  for (const line of lines) {
-    const colonIndex = line.indexOf(':')
-    if (colonIndex === -1) continue
-
-    const key = line.slice(0, colonIndex).trim()
-    const rawValue = line.slice(colonIndex + 1).trim()
-
-    if (!key) continue
-
-    frontmatter[key] = parseValue(rawValue)
+  if (!raw.trimStart().startsWith('---')) return undefined
+  const parsed = matter(raw)
+  return {
+    frontmatter: (parsed.data ?? {}) as Record<string, unknown>,
+    content: parsed.content.trim(),
   }
-
-  return { frontmatter, content }
-}
-
-/**
- * Parse a YAML-like value: supports arrays, booleans, dates, quoted strings.
- */
-export function parseValue(raw: string): unknown {
-  // Empty value
-  if (!raw || raw === '""' || raw === "''") return ''
-
-  // Boolean
-  if (raw === 'true') return true
-  if (raw === 'false') return false
-
-  // Array: [a, b, c]
-  if (raw.startsWith('[') && raw.endsWith(']')) {
-    const inner = raw.slice(1, -1)
-    if (!inner.trim()) return []
-    return inner.split(',').map((item) => {
-      const trimmed = item.trim()
-      // Remove quotes if present
-      if (
-        (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
-        (trimmed.startsWith('"') && trimmed.endsWith('"'))
-      ) {
-        return trimmed.slice(1, -1)
-      }
-      return trimmed
-    })
-  }
-
-  // Quoted string
-  if (
-    (raw.startsWith("'") && raw.endsWith("'")) ||
-    (raw.startsWith('"') && raw.endsWith('"'))
-  ) {
-    return raw.slice(1, -1)
-  }
-
-  // Date-like value (YYYY-MM-DD)
-  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-    return raw
-  }
-
-  // Number
-  if (/^-?\d+(\.\d+)?$/.test(raw)) {
-    return Number(raw)
-  }
-
-  return raw
 }

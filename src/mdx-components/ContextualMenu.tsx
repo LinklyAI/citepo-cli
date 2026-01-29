@@ -55,7 +55,7 @@ export function ContextualMenu({ options }: ContextualMenuProps) {
           onClick={handleCopy}
           className={dropdownItems.length > 0 ? 'rounded-r-none border-r-0' : ''}
         >
-          <Copy className="size-3.5" />
+          <Copy />
           {copied ? 'Copied!' : 'Copy Page'}
         </Button>
       )}
@@ -68,7 +68,7 @@ export function ContextualMenu({ options }: ContextualMenuProps) {
               size="sm"
               className={hasCopy ? 'rounded-l-none px-2' : ''}
             >
-              <ChevronDown className="size-3.5" />
+              <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

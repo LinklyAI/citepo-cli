@@ -33,7 +33,7 @@ const {
 const pageTitle = title === blogConfig.name ? title : `${title} - ${blogConfig.name}`
 const siteUrl = blogConfig.siteUrl
 const canonicalUrl = siteUrl ? `${siteUrl}${Astro.url.pathname}` : undefined
-const rssUrl = getRssUrl(lang, blogConfig)
+const rssUrl = blogConfig.rss ? getRssUrl(lang, blogConfig) : undefined
 const multiLang = isMultiLang(blogConfig)
 
 // Resolve OG image: use provided ogImage, or auto-generate dynamic URL via /og-image.png
@@ -141,7 +141,9 @@ const colorOverrides = buildColorOverrides()
     )}
 
     {/* RSS discovery */}
-    <link rel="alternate" type="application/rss+xml" title={blogConfig.name} href={rssUrl} />
+    {rssUrl && (
+      <link rel="alternate" type="application/rss+xml" title={blogConfig.name} href={rssUrl} />
+    )}
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 

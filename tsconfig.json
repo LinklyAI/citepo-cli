@@ -3,23 +3,28 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2022"],
-    "outDir": "dist",
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "rootDir": "src",
+    "noEmit": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "baseUrl": ".",
+    "paths": {
+      "@theme/*": ["src/theme/clean/*"],
+      "@ui/*": ["src/ui/*"],
+      "@mdx/*": ["src/mdx-components/*"]
+    }
   },
-  "include": ["src/cli/**/*", "src/engine/**/*"],
-  "exclude": ["node_modules", "dist", "src/astro-project", "src/theme", "src/mdx-components", "src/scaffold"]
+  "include": ["src/cli/**/*", "src/engine/**/*", "src/ui/**/*", "src/mdx-components/**/*", "src/theme/**/*"],
+  "exclude": ["node_modules", "dist", "src/astro-project", "src/scaffold"]
 }

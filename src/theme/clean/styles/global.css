@@ -1,10 +1,17 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+@custom-variant dark (&:is(.dark *));
 
 /* Source paths for Tailwind v4 class scanning */
 @source "../components";
 @source "../../../ui";
 @source "../../../mdx-components";
 @source "../../../astro-project/src";
+
+::selection {
+  background-color: #47a3f3;
+  color: #fefefe;
+}
 
 /* ──────────────────────────────────────────────
  * Light Mode — neutral black & white
@@ -31,16 +38,16 @@
   --destructive-foreground: #ffffff;
   --radius: 0.375rem;
 
-  /* Sugar-high code highlighting — cool blue-gray */
-  --sh-class: #5c6166;
-  --sh-identifier: #0969da;
-  --sh-sign: #737373;
-  --sh-string: #0a3069;
-  --sh-keyword: #cf222e;
-  --sh-comment: #6e7781;
-  --sh-jsxliterals: #1a7f37;
-  --sh-property: #953800;
-  --sh-entity: #1a7f37;
+  /* Sugar-high code highlighting  */
+  --sh-class: #2d5e9d;
+  --sh-identifier: #354150;
+  --sh-sign: #8996a3;
+  --sh-string: #007f7a;
+  --sh-keyword: #e02518;
+  --sh-comment: #a19595;
+  --sh-jsxliterals: #6266d1;
+  --sh-property: #e25a1c;
+  --sh-entity: #e25a1c;
 }
 
 /* ──────────────────────────────────────────────
@@ -66,17 +73,13 @@
   --popover-foreground: #e5e5e5;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
+  color-scheme: dark;
 
   /* Sugar-high code highlighting — dark */
-  --sh-class: #d2a8ff;
-  --sh-identifier: #79c0ff;
-  --sh-sign: #a3a3a3;
-  --sh-string: #a5d6ff;
-  --sh-keyword: #ff7b72;
-  --sh-comment: #8b949e;
-  --sh-jsxliterals: #7ee787;
-  --sh-property: #ffa657;
-  --sh-entity: #7ee787;
+  --sh-class: #4c97f8;
+  --sh-identifier: #ffffff;
+  --sh-keyword: #f47067;
+  --sh-string: #0fa295;
 }
 
 /* ──────────────────────────────────────────────
@@ -113,84 +116,184 @@
   --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-/* ──────────────────────────────────────────────
- * Base Styles
- * ────────────────────────────────────────────── */
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  html {
+    min-width: 360px;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
 }
 
-/* ──────────────────────────────────────────────
- * Prose Typography (article content area)
- * ────────────────────────────────────────────── */
-.prose {
-  --tw-prose-body: var(--foreground);
-  --tw-prose-headings: var(--foreground);
-  --tw-prose-links: var(--foreground);
-  --tw-prose-bold: var(--foreground);
-  --tw-prose-counters: var(--muted-foreground);
-  --tw-prose-bullets: var(--muted-foreground);
-  --tw-prose-hr: var(--border);
-  --tw-prose-quotes: var(--foreground);
-  --tw-prose-quote-borders: var(--border);
-  --tw-prose-code: var(--foreground);
-  --tw-prose-pre-bg: var(--muted);
-  --tw-prose-pre-code: var(--foreground);
-  --tw-prose-th-borders: var(--border);
-  --tw-prose-td-borders: var(--border);
+.prose .anchor {
+  @apply absolute invisible no-underline;
+
+  margin-left: -1em;
+  padding-right: 0.5em;
+  width: 80%;
+  max-width: 700px;
+  cursor: pointer;
+}
+
+.anchor:hover {
+  @apply visible;
 }
 
 .prose a {
-  text-decoration: underline;
-  text-decoration-color: var(--border);
-  text-underline-offset: 3px;
-  transition: text-decoration-color 0.2s;
+  @apply underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em];
 }
 
-.prose a:hover {
-  text-decoration-color: var(--foreground);
+.prose .anchor:after {
+  @apply text-neutral-300 dark:text-neutral-700;
+  content: "#";
 }
 
-.prose code:not(pre code) {
-  background-color: var(--muted);
-  border-radius: 0.25rem;
-  padding: 0.15em 0.35em;
-  font-size: 0.875em;
+.prose *:hover > .anchor {
+  @apply visible;
 }
 
 .prose pre {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg overflow-x-auto border border-neutral-100 dark:border-neutral-900 p-4 text-sm;
+}
+
+.prose code {
+  @apply px-1.5 py-0.5 rounded-md text-sm font-medium;
+  @apply bg-neutral-100 dark:bg-neutral-800;
+  @apply text-neutral-800 dark:text-neutral-200;
+}
+
+.prose pre code {
+  @apply p-0 bg-transparent text-inherit font-normal;
+  border: initial;
+  line-height: 1.5;
+}
+
+.prose code span {
+  @apply font-normal;
 }
 
 .prose img {
-  border-radius: var(--radius);
+  @apply m-0 my-2;
+}
+
+.prose p {
+  @apply my-4 text-neutral-800 dark:text-neutral-200;
+}
+
+.prose h1 {
+  @apply text-4xl font-semibold tracking-tight mt-6 mb-2;
+}
+
+.prose h2 {
+  @apply text-2xl font-semibold tracking-tight mt-6 mb-2;
+}
+
+.prose h3 {
+  @apply text-xl font-semibold tracking-tight mt-6 mb-2;
+}
+
+.prose h4 {
+  @apply text-lg font-semibold tracking-tight mt-6 mb-2;
+}
+
+.prose strong {
+  @apply font-medium;
+}
+
+.prose ul {
+  @apply list-disc pl-6;
+}
+
+.prose ol {
+  @apply list-decimal pl-6;
 }
 
 .prose blockquote {
-  border-left-color: var(--border);
-  font-style: normal;
+  @apply border-l-2 border-neutral-300 dark:border-neutral-600 pl-4 my-4 italic text-neutral-600 dark:text-neutral-400;
+}
+
+.prose > :first-child {
+  margin-top: 1.25em !important;
+  margin-bottom: 1.25em !important;
 }
 
 /* Mac-style scrollbar */
-::-webkit-scrollbar {
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+}
+
+*::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
   background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--border);
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
   border-radius: 3px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(155, 155, 155, 0.7);
+}
+
+.dark * {
+  scrollbar-color: rgba(100, 100, 100, 0.5) transparent;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.5);
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 100, 100, 0.7);
+}
+
+.prose table {
+  @apply w-full my-4 border rounded-xl border-neutral-100 dark:border-neutral-900 p-4 text-sm;
+  display: block;
+  max-width: fit-content;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.prose thead {
+  @apply border-b border-neutral-300 dark:border-neutral-700;
+}
+
+.prose th {
+  @apply px-4 py-2 text-left font-medium text-neutral-900 dark:text-neutral-100;
+}
+
+.prose td {
+  @apply px-4 py-2 border-b border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300;
+}
+
+.prose tbody tr:hover {
+  @apply bg-neutral-50 dark:bg-neutral-900;
+}
+
+.title {
+  text-wrap: balance;
+}
+
+@layer components {
+  .page-title {
+    @apply font-semibold text-2xl tracking-tighter text-foreground;
+  }
+
+  .page-description {
+    @apply text-muted-foreground text-base;
+  }
+
+  .post-title {
+    @apply text-4xl font-semibold tracking-tighter text-foreground;
+  }
 }

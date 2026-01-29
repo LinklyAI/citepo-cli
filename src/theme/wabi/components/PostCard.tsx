@@ -1,3 +1,5 @@
+import { Badge } from '@ui/badge'
+
 interface PostCardProps {
   title: string
   description: string
@@ -29,41 +31,37 @@ export default function PostCard({
   })
 
   return (
-    <a href={href} className="block no-underline">
-      <article className="group flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 -mx-4 rounded-lg border border-transparent hover:border-border/50 hover:bg-muted/30 transition-colors duration-200">
+    <a href={href} className="group block no-underline">
+      <article className="flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 rounded-lg border border-transparent hover:border-border/50 hover:bg-muted/30 transition-colors duration-200">
         {coverImage && (
-          <div className="sm:w-48 sm:flex-shrink-0 overflow-hidden rounded-md">
-            <img
-              src={coverImage}
-              alt={title}
-              className="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-            />
+          <div className="sm:w-48 sm:flex-shrink-0">
+            <div className="relative aspect-video sm:aspect-[4/3] rounded-md overflow-hidden bg-muted border">
+              <img
+                src={coverImage}
+                alt={title}
+                className="object-cover w-full h-full group-hover:scale-[1.02] transition-transform duration-200"
+              />
+            </div>
           </div>
         )}
-        <div className="flex flex-col gap-2 min-w-0">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap text-sm text-muted-foreground">
             <time dateTime={date}>{formattedDate}</time>
             {tags.length > 0 && (
               <>
-                <span className="text-border">&middot;</span>
-                <div className="flex gap-1.5 flex-wrap">
-                  {tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                {tags.slice(0, 3).map((tag) => (
+                  <Badge key={tag} variant="secondary">
+                    {tag}
+                  </Badge>
+                ))}
               </>
             )}
           </div>
-          <h2 className="text-xl font-medium text-foreground group-hover:text-primary transition-colors duration-200">
+          <h2 className="text-xl font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
             {title}
           </h2>
           {description && (
-            <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+            <p className="text-foreground/80 line-clamp-2">
               {description}
             </p>
           )}

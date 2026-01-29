@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseFrontmatter, parseValue, detectLang } from './content.js'
+import { parseFrontmatter, detectLang } from './content.js'
 
 describe('parseFrontmatter', () => {
   it('should parse standard frontmatter', () => {
@@ -62,58 +62,7 @@ Content`
 
     const result = parseFrontmatter(raw)
     expect(result).toBeDefined()
-    expect(result!.frontmatter.description).toBe('')
-  })
-})
-
-describe('parseValue', () => {
-  it('should return empty string for empty value', () => {
-    expect(parseValue('')).toBe('')
-  })
-
-  it('should return empty string for empty quotes', () => {
-    expect(parseValue('""')).toBe('')
-    expect(parseValue("''")).toBe('')
-  })
-
-  it('should parse boolean true', () => {
-    expect(parseValue('true')).toBe(true)
-  })
-
-  it('should parse boolean false', () => {
-    expect(parseValue('false')).toBe(false)
-  })
-
-  it('should parse arrays', () => {
-    expect(parseValue('[a, b, c]')).toEqual(['a', 'b', 'c'])
-  })
-
-  it('should parse empty arrays', () => {
-    expect(parseValue('[]')).toEqual([])
-  })
-
-  it('should parse arrays with quoted strings', () => {
-    expect(parseValue('["hello", "world"]')).toEqual(['hello', 'world'])
-    expect(parseValue("['hello', 'world']")).toEqual(['hello', 'world'])
-  })
-
-  it('should parse quoted strings', () => {
-    expect(parseValue('"hello world"')).toBe('hello world')
-    expect(parseValue("'hello world'")).toBe('hello world')
-  })
-
-  it('should parse date-like values as strings', () => {
-    expect(parseValue('2025-01-01')).toBe('2025-01-01')
-  })
-
-  it('should parse numbers', () => {
-    expect(parseValue('42')).toBe(42)
-    expect(parseValue('3.14')).toBe(3.14)
-    expect(parseValue('-7')).toBe(-7)
-  })
-
-  it('should return raw string for unrecognized values', () => {
-    expect(parseValue('hello')).toBe('hello')
+    expect(result!.frontmatter.description).toBe(null)
   })
 })
 

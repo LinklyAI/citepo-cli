@@ -164,7 +164,7 @@ export async function createFullAstroConfig(
   const config = createAstroConfig(blogConfig, userDir, options)
   const { mdx, react, sitemap, tailwindVite } = await loadIntegrations()
 
-  config.integrations = [mdx(), react(), sitemap()]
+  config.integrations = [mdx(), react(), ...(blogConfig.sitemap ? [sitemap()] : [])]
 
   // Prepend Tailwind CSS v4 Vite plugin to the plugins list
   const existingPlugins = (config.vite?.plugins ?? []) as Plugin[]

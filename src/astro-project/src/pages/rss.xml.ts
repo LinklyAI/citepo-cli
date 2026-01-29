@@ -2,21 +2,17 @@ import rss from '@astrojs/rss'
 import { getCollection } from 'astro:content'
 import type { APIContext } from 'astro'
 import { isMultiLang, getPostUrl } from '../lib/i18n.ts'
+import blogConfig from 'virtual:blog-config'
 
 export async function GET(context: APIContext) {
-  const blogConfig = JSON.parse(process.env.CITEPO_BLOG_CONFIG || '{}') as {
-    name?: string
-    description?: string
-    siteUrl?: string
-    defaultLanguage?: string
-    languages?: string[]
-    basePath?: string
-  }
-
   const i18nConfig = {
     defaultLanguage: blogConfig.defaultLanguage || 'en',
     languages: blogConfig.languages,
     basePath: blogConfig.basePath || '/',
+  }
+
+  if (!blogConfig.rss) {
+    return new Response(null, { status: 404 })
   }
 
   // Multi-lang: RSS is under /[lang]/rss.xml; root /rss.xml not generated

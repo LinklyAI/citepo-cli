@@ -1,4 +1,4 @@
-/// <reference types="astro/client" />
+/// <reference path="../.astro/types.d.ts" />
 
 declare module 'virtual:blog-config' {
   import type { BlogConfig } from '../../engine/config.js'
