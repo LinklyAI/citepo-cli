@@ -71,4 +71,96 @@ describe('validateBlogConfig', () => {
     expect(config.postsPerPage).toBe(10)
     expect(config.description).toBe('')
   })
+
+  // --- theme field validation ---
+
+  it('should accept theme "clean"', () => {
+    const config = validateBlogConfig({ name: 'test', theme: 'clean' })
+    expect(config.theme).toBe('clean')
+  })
+
+  it('should accept theme "wabi"', () => {
+    const config = validateBlogConfig({ name: 'test', theme: 'wabi' })
+    expect(config.theme).toBe('wabi')
+  })
+
+  it('should reject invalid theme value', () => {
+    expect(() => validateBlogConfig({ name: 'test', theme: 'invalid' })).toThrow(ZodError)
+  })
+
+  // --- logo field validation ---
+
+  it('should accept logo as a string URL', () => {
+    const config = validateBlogConfig({
+      name: 'test',
+      logo: 'https://example.com/logo.png',
+    })
+    expect(config.logo).toBe('https://example.com/logo.png')
+  })
+
+  it('should allow missing logo field', () => {
+    const config = validateBlogConfig({ name: 'test' })
+    expect(config.logo).toBeUndefined()
+  })
+
+  // --- hero field validation ---
+
+  it('should accept hero with image', () => {
+    const config = validateBlogConfig({
+      name: 'test',
+      hero: { image: '/images/hero.webp' },
+    })
+    expect(config.hero?.image).toBe('/images/hero.webp')
+  })
+
+  it('should allow missing hero field', () => {
+    const config = validateBlogConfig({ name: 'test' })
+    expect(config.hero).toBeUndefined()
+  })
+
+  it('should accept hero without image', () => {
+    const config = validateBlogConfig({ name: 'test', hero: {} })
+    expect(config.hero).toBeDefined()
+    expect(config.hero?.image).toBeUndefined()
+  })
+
+  // --- contextual field validation ---
+
+  it('should accept contextual with valid options', () => {
+    const config = validateBlogConfig({
+      name: 'test',
+      contextual: { options: ['copy', 'view', 'chatgpt', 'claude'] },
+    })
+    expect(config.contextual?.options).toEqual(['copy', 'view', 'chatgpt', 'claude'])
+  })
+
+  it('should allow missing contextual field', () => {
+    const config = validateBlogConfig({ name: 'test' })
+    expect(config.contextual).toBeUndefined()
+  })
+
+  it('should reject invalid contextual option', () => {
+    expect(() =>
+      validateBlogConfig({
+        name: 'test',
+        contextual: { options: ['copy', 'invalid_option'] },
+      }),
+    ).toThrow(ZodError)
+  })
+
+  // --- social field validation ---
+
+  it('should allow missing social field', () => {
+    const config = validateBlogConfig({ name: 'test' })
+    expect(config.social).toBeUndefined()
+  })
+
+  it('should accept social with partial fields', () => {
+    const config = validateBlogConfig({
+      name: 'test',
+      social: { github: 'user123' },
+    })
+    expect(config.social?.github).toBe('user123')
+    expect(config.social?.twitter).toBeUndefined()
+  })
 })

@@ -1,34 +1,27 @@
 import type { ReactNode } from 'react'
+import {
+  Accordion as AccordionRoot,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from '@ui/accordion'
 
 interface AccordionProps {
   title: string
   children: ReactNode
 }
 
-/** Collapsible section using native details/summary — no JS needed */
+/**
+ * Collapsible section using Radix Accordion — requires client:load.
+ * Single-item accordion with collapsible behavior.
+ */
 export function Accordion({ title, children }: AccordionProps) {
   return (
-    <details className="not-prose group my-3 rounded-lg border border-border">
-      <summary className="cursor-pointer select-none px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/30 transition-colors list-none flex items-center justify-between">
-        {title}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="transition-transform group-open:rotate-180"
-        >
-          <path d="m6 9 6 6 6-6" />
-        </svg>
-      </summary>
-      <div className="px-4 pb-4 text-sm text-foreground/80 [&>p]:mb-2 [&>p:last-child]:mb-0">
-        {children}
-      </div>
-    </details>
+    <AccordionRoot type="single" collapsible className="not-prose my-3">
+      <AccordionItem value="item-1" className="rounded-lg border border-border">
+        <AccordionTrigger className="px-4 hover:no-underline">{title}</AccordionTrigger>
+        <AccordionContent className="px-4 text-foreground/80">{children}</AccordionContent>
+      </AccordionItem>
+    </AccordionRoot>
   )
 }

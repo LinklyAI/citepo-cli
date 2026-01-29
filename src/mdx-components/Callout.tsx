@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import { Alert, AlertTitle, AlertDescription } from '@ui/alert'
+import { cn } from '@ui/lib/utils'
 
 interface CalloutProps {
   type?: 'info' | 'warning' | 'error' | 'tip'
@@ -6,52 +8,43 @@ interface CalloutProps {
   children: ReactNode
 }
 
-const CALLOUT_STYLES: Record<string, { bg: string; border: string; icon: string; title: string }> = {
+const CALLOUT_CONFIG: Record<
+  string,
+  { icon: string; title: string; className: string }
+> = {
   info: {
-    bg: 'bg-blue-50 dark:bg-blue-950/30',
-    border: 'border-blue-200 dark:border-blue-800',
     icon: 'ℹ',
     title: 'Info',
+    className: 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800',
   },
   warning: {
-    bg: 'bg-amber-50 dark:bg-amber-950/30',
-    border: 'border-amber-200 dark:border-amber-800',
     icon: '⚠',
     title: 'Warning',
+    className: 'bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800',
   },
   error: {
-    bg: 'bg-red-50 dark:bg-red-950/30',
-    border: 'border-red-200 dark:border-red-800',
     icon: '✕',
     title: 'Error',
+    className: 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800',
   },
   tip: {
-    bg: 'bg-green-50 dark:bg-green-950/30',
-    border: 'border-green-200 dark:border-green-800',
     icon: '✓',
     title: 'Tip',
+    className: 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800',
   },
 }
 
 /** Styled alert box with icon — info, warning, error, or tip */
 export function Callout({ type = 'info', title, children }: CalloutProps) {
-  const style = CALLOUT_STYLES[type] ?? CALLOUT_STYLES.info!
+  const config = CALLOUT_CONFIG[type] ?? CALLOUT_CONFIG.info!
 
   return (
-    <div className={`not-prose my-6 rounded-lg border p-4 ${style.bg} ${style.border}`}>
-      <div className="flex items-start gap-3">
-        <span className="text-lg leading-none mt-0.5" aria-hidden="true">
-          {style.icon}
-        </span>
-        <div className="flex-1 min-w-0">
-          {(title || style.title) && (
-            <p className="font-semibold text-foreground text-sm mb-1">{title ?? style.title}</p>
-          )}
-          <div className="text-sm text-foreground/80 [&>p]:mb-2 [&>p:last-child]:mb-0">
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
+    <Alert className={cn('not-prose my-6', config.className)}>
+      <span className="text-lg leading-none" aria-hidden="true">
+        {config.icon}
+      </span>
+      <AlertTitle>{title ?? config.title}</AlertTitle>
+      <AlertDescription>{children}</AlertDescription>
+    </Alert>
   )
 }

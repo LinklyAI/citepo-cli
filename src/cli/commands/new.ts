@@ -3,7 +3,7 @@ import * as p from '@clack/prompts'
 import { mkdir, writeFile, copyFile, access } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { getPackageRoot, getVersion } from '../utils.js'
-import type { LanguageCodeType } from '../../engine/config.js'
+import type { LanguageCodeType, ThemeNameType } from '../../engine/config.js'
 import { buildBlogJson, buildReadme, copyScaffoldContent } from '../../engine/starter.js'
 
 const BRAND_BANNER = `
@@ -28,9 +28,15 @@ const LANGUAGE_OPTIONS = [
   { value: 'ja', label: '日本語', hint: 'Japanese' },
 ] as const
 
+const THEME_OPTIONS = [
+  { value: 'clean', label: 'Clean', hint: 'Minimal black & white' },
+  { value: 'wabi', label: 'Wabi', hint: 'Warm reading theme' },
+] as const
+
 interface NewCommandOptions {
   name: string
   description: string
+  theme: ThemeNameType
   defaultLanguage: LanguageCodeType
   additionalLanguages: LanguageCodeType[]
 }
@@ -77,6 +83,12 @@ async function collectUserInput(directory?: string): Promise<NewCommandOptions |
           placeholder: 'A personal blog about technology and life',
           defaultValue: '',
         }),
+      theme: () =>
+        p.select({
+          message: 'Choose a theme',
+          options: [...THEME_OPTIONS],
+          initialValue: 'clean' as const,
+        }),
       defaultLanguage: () =>
         p.select({
           message: 'Choose the default language',
@@ -113,6 +125,7 @@ async function collectUserInput(directory?: string): Promise<NewCommandOptions |
   return {
     name: result.name as string,
     description: (result.description as string) ?? '',
+    theme: result.theme as ThemeNameType,
     defaultLanguage: result.defaultLanguage as LanguageCodeType,
     additionalLanguages: (result.additionalLanguages ?? []) as LanguageCodeType[],
   }
@@ -150,7 +163,7 @@ async function generateProject(targetDir: string, options: NewCommandOptions): P
 
   // Generate blog.json
   const blogConfig = buildBlogJson(
-    { name: options.name, description: options.description, defaultLanguage: options.defaultLanguage },
+    { name: options.name, description: options.description, defaultLanguage: options.defaultLanguage, theme: options.theme },
     allLanguages,
   )
   await writeFile(join(targetDir, 'blog.json'), JSON.stringify(blogConfig, null, 2) + '\n', 'utf-8')
@@ -186,7 +199,7 @@ async function generateProject(targetDir: string, options: NewCommandOptions): P
   if (isMultiLang) {
     p.log.info(`Multi-language: enabled (default: ${options.defaultLanguage})`)
   }
-  p.log.info(`Theme: clean`)
+  p.log.info(`Theme: ${options.theme}`)
   p.log.info(`Directory: ${targetDir}`)
 }
 

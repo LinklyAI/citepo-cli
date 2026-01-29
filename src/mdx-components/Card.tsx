@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Card as CardUI, CardHeader, CardTitle, CardDescription } from '@ui/card'
 
 interface CardProps {
   title: string
@@ -10,19 +11,15 @@ interface CardProps {
 /** Linked card with optional icon */
 export function Card({ title, icon, href, children }: CardProps) {
   const content = (
-    <div className="not-prose group rounded-lg border border-border p-4 hover:border-primary/30 hover:bg-muted/30 transition-colors h-full">
-      <div className="flex items-start gap-3">
-        {icon && <span className="text-xl leading-none mt-0.5">{icon}</span>}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors">
-            {title}
-          </h3>
-          {children && (
-            <div className="text-sm text-muted-foreground mt-1 [&>p]:mb-0">{children}</div>
-          )}
-        </div>
-      </div>
-    </div>
+    <CardUI className="not-prose group h-full py-4 hover:border-primary/30 hover:bg-muted/30 transition-colors">
+      <CardHeader className="gap-1">
+        <CardTitle className="flex items-start gap-3 text-sm group-hover:text-primary transition-colors">
+          {icon && <span className="text-xl leading-none mt-0.5">{icon}</span>}
+          {title}
+        </CardTitle>
+        {children && <CardDescription>{children}</CardDescription>}
+      </CardHeader>
+    </CardUI>
   )
 
   if (href) {

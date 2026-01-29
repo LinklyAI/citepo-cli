@@ -7,76 +7,76 @@
 @source "../../../astro-project/src";
 
 /* ──────────────────────────────────────────────
- * Light Mode — neutral black & white
+ * Light Mode — wabi warm tones
  * ────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --primary: #171717;
+  --background: #faf9f7;
+  --foreground: #3d3935;
+  --primary: #e07a5f;
   --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #525252;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --accent: #f5f5f5;
-  --accent-foreground: #525252;
-  --border: #e5e5e5;
-  --input: #e5e5e5;
-  --ring: #171717;
+  --secondary: #f2ebe6;
+  --secondary-foreground: #5c554f;
+  --muted: #f0eeeb;
+  --muted-foreground: #8a8480;
+  --accent: #f2ebe6;
+  --accent-foreground: #5c554f;
+  --border: #e8e6e3;
+  --input: #e8e6e3;
+  --ring: #e07a5f;
   --card: #ffffff;
-  --card-foreground: #171717;
+  --card-foreground: #3d3935;
   --popover: #ffffff;
-  --popover-foreground: #171717;
+  --popover-foreground: #3d3935;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --radius: 0.375rem;
 
-  /* Sugar-high code highlighting — cool blue-gray */
+  /* Sugar-high code highlighting — warm light */
   --sh-class: #5c6166;
-  --sh-identifier: #0969da;
-  --sh-sign: #737373;
-  --sh-string: #0a3069;
-  --sh-keyword: #cf222e;
-  --sh-comment: #6e7781;
-  --sh-jsxliterals: #1a7f37;
-  --sh-property: #953800;
-  --sh-entity: #1a7f37;
+  --sh-identifier: #e07a5f;
+  --sh-sign: #8a8480;
+  --sh-string: #86b300;
+  --sh-keyword: #fa8d3e;
+  --sh-comment: #787b8099;
+  --sh-jsxliterals: #6c7834;
+  --sh-property: #e07a5f;
+  --sh-entity: #6c7834;
 }
 
 /* ──────────────────────────────────────────────
  * Dark Mode
  * ────────────────────────────────────────────── */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #e5e5e5;
-  --primary: #e5e5e5;
-  --primary-foreground: #0a0a0a;
-  --secondary: #171717;
-  --secondary-foreground: #a3a3a3;
-  --muted: #171717;
-  --muted-foreground: #a3a3a3;
-  --accent: #171717;
-  --accent-foreground: #a3a3a3;
-  --border: #262626;
-  --input: #262626;
-  --ring: #e5e5e5;
-  --card: #0a0a0a;
-  --card-foreground: #e5e5e5;
-  --popover: #0a0a0a;
-  --popover-foreground: #e5e5e5;
+  --background: #2b2624;
+  --foreground: #f0ede8;
+  --primary: #ff8c6b;
+  --primary-foreground: #1a1614;
+  --secondary: #3d3531;
+  --secondary-foreground: #d4cec8;
+  --muted: #352f2b;
+  --muted-foreground: #a09a94;
+  --accent: #3d3531;
+  --accent-foreground: #d4cec8;
+  --border: #4a423d;
+  --input: #4a423d;
+  --ring: #ff8c6b;
+  --card: #332d29;
+  --card-foreground: #f0ede8;
+  --popover: #332d29;
+  --popover-foreground: #f0ede8;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
-  /* Sugar-high code highlighting — dark */
-  --sh-class: #d2a8ff;
-  --sh-identifier: #79c0ff;
-  --sh-sign: #a3a3a3;
-  --sh-string: #a5d6ff;
-  --sh-keyword: #ff7b72;
-  --sh-comment: #8b949e;
-  --sh-jsxliterals: #7ee787;
-  --sh-property: #ffa657;
-  --sh-entity: #7ee787;
+  /* Sugar-high code highlighting — warm dark */
+  --sh-class: #d4cec8;
+  --sh-identifier: #ff8c6b;
+  --sh-sign: #a09a94;
+  --sh-string: #aad94c;
+  --sh-keyword: #ffb454;
+  --sh-comment: #acb6bf8c;
+  --sh-jsxliterals: #95e6cb;
+  --sh-property: #ff8c6b;
+  --sh-entity: #95e6cb;
 }
 
 /* ──────────────────────────────────────────────
@@ -130,7 +130,7 @@ body {
 .prose {
   --tw-prose-body: var(--foreground);
   --tw-prose-headings: var(--foreground);
-  --tw-prose-links: var(--foreground);
+  --tw-prose-links: var(--primary);
   --tw-prose-bold: var(--foreground);
   --tw-prose-counters: var(--muted-foreground);
   --tw-prose-bullets: var(--muted-foreground);
@@ -145,14 +145,13 @@ body {
 }
 
 .prose a {
-  text-decoration: underline;
-  text-decoration-color: var(--border);
+  text-decoration-color: var(--primary);
   text-underline-offset: 3px;
-  transition: text-decoration-color 0.2s;
+  transition: color 0.2s;
 }
 
 .prose a:hover {
-  text-decoration-color: var(--foreground);
+  color: var(--primary);
 }
 
 .prose code:not(pre code) {
@@ -172,25 +171,6 @@ body {
 }
 
 .prose blockquote {
-  border-left-color: var(--border);
+  border-left-color: var(--primary);
   font-style: normal;
-}
-
-/* Mac-style scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
 }

@@ -17,7 +17,7 @@ interface HeaderProps {
   translations?: Record<string, string>
 }
 
-/** Clean header — non-sticky, minimal with bottom border */
+/** Wabi header — sticky with backdrop blur, warm accent */
 export default function Header({
   blogName,
   logo,
@@ -43,11 +43,11 @@ export default function Header({
   const showLangSwitcher = currentLang && languages && languages.length > 1
 
   return (
-    <header className="border-b border-border">
-      <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
+      <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
         <a
           href={homeHref}
-          className="flex items-center gap-2 text-foreground hover:text-foreground/80 transition-colors"
+          className="flex items-center gap-2 text-foreground hover:text-primary transition-colors"
         >
           {logo && (
             <img
@@ -56,7 +56,7 @@ export default function Header({
               className="size-6 rounded-full object-cover"
             />
           )}
-          <span className="font-medium">{blogName}</span>
+          <span className="font-semibold">{blogName}</span>
         </a>
 
         <nav className="flex items-center gap-4">
@@ -81,10 +81,10 @@ export default function Header({
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+            className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             aria-label="Toggle dark mode"
           >
-            {isDark ? <Sun size={16} /> : <Moon size={16} />}
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </nav>
       </div>

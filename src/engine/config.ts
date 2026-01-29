@@ -50,17 +50,39 @@ const SocialSchema = z
   })
   .optional()
 
+/** Supported theme names */
+export const SUPPORTED_THEMES = ['clean', 'wabi'] as const
+const ThemeName = z.enum(SUPPORTED_THEMES)
+export type ThemeNameType = z.infer<typeof ThemeName>
+
+/** Hero banner configuration */
+const HeroSchema = z
+  .object({
+    image: z.string().optional(),
+  })
+  .optional()
+
+/** Contextual menu configuration */
+const ContextualSchema = z
+  .object({
+    options: z.array(z.enum(['copy', 'view', 'chatgpt', 'claude'])).optional(),
+  })
+  .optional()
+
 /** Full blog.json schema */
 export const BlogConfigSchema = z.object({
   $schema: z.string().optional(),
   name: z.string().min(1, 'name is required'),
   description: z.string().default(''),
-  theme: z.string().default('clean'),
+  theme: ThemeName.default('clean'),
+  logo: z.string().optional(),
   defaultLanguage: LanguageCode.default('en'),
   languages: z.array(LanguageCode).optional(),
   colors: ColorsSchema,
   font: FontSchema,
   seo: SeoSchema,
+  hero: HeroSchema,
+  contextual: ContextualSchema,
   navigation: z.array(NavLinkSchema).optional(),
   social: SocialSchema,
   basePath: z.string().default('/'),

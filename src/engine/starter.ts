@@ -1,11 +1,12 @@
 import { copyFile, access } from 'node:fs/promises'
 import { join } from 'node:path'
-import type { LanguageCodeType } from './config.js'
+import type { LanguageCodeType, ThemeNameType } from './config.js'
 
 export interface StarterOptions {
   name: string
   description: string
   defaultLanguage: LanguageCodeType
+  theme: ThemeNameType
 }
 
 /** Build blog.json object for project scaffolding */
@@ -17,7 +18,8 @@ export function buildBlogJson(
     $schema: 'https://unpkg.com/citepo/schema.json',
     name: options.name,
     description: options.description,
-    theme: 'clean',
+    theme: options.theme,
+    logo: 'https://cdn.citepo.com/assets/citepo-icon-128.webp',
     defaultLanguage: options.defaultLanguage,
   }
 
@@ -25,6 +27,7 @@ export function buildBlogJson(
     config.languages = allLanguages
   }
 
+  config.contextual = { options: ['copy', 'view', 'chatgpt', 'claude'] }
   config.basePath = '/'
   config.rss = true
   config.sitemap = true

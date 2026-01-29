@@ -2,6 +2,7 @@
 import BaseLayout from './BaseLayout.astro'
 import TableOfContents from '@theme/components/TableOfContents.tsx'
 import PostNavigation from '@theme/components/PostNavigation.tsx'
+import { ContextualMenu } from '@mdx/ContextualMenu.tsx'
 import blogConfig from 'virtual:blog-config'
 import { isMultiLang, getLangHomeUrl, getTagsBaseUrl } from '../lib/i18n.ts'
 
@@ -54,6 +55,7 @@ const homeUrl = getLangHomeUrl(lang, blogConfig)
 const tagsBaseUrl = getTagsBaseUrl(lang, blogConfig)
 const multiLang = isMultiLang(blogConfig)
 const hasHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3).length > 0
+const contextualOptions = blogConfig.contextual?.options
 ---
 
 <BaseLayout
@@ -111,6 +113,12 @@ const hasHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3).length 
               </>
             )}
           </div>
+
+          {contextualOptions && contextualOptions.length > 0 && (
+            <div class="mt-4">
+              <ContextualMenu client:load options={contextualOptions} />
+            </div>
+          )}
         </header>
 
         {/* Cover image */}

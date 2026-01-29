@@ -52,4 +52,32 @@ describe('generateBlogJsonSchema', () => {
     expect(properties.sitemap).toBeDefined()
     expect(properties.postsPerPage).toBeDefined()
   })
+
+  it('should include theme enum with clean and wabi', () => {
+    const def = getBlogConfigDef()
+    const properties = def.properties as Record<string, Record<string, unknown>>
+    const theme = properties.theme!
+
+    expect(theme).toBeDefined()
+    const enumValues = theme.enum as string[]
+    expect(enumValues).toContain('clean')
+    expect(enumValues).toContain('wabi')
+    expect(enumValues).toHaveLength(2)
+  })
+
+  it('should include new fields: logo, hero, contextual', () => {
+    const def = getBlogConfigDef()
+    const properties = def.properties as Record<string, unknown>
+
+    expect(properties.logo).toBeDefined()
+    expect(properties.hero).toBeDefined()
+    expect(properties.contextual).toBeDefined()
+  })
+
+  it('should include social field', () => {
+    const def = getBlogConfigDef()
+    const properties = def.properties as Record<string, unknown>
+
+    expect(properties.social).toBeDefined()
+  })
 })

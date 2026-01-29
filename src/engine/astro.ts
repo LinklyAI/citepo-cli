@@ -100,6 +100,14 @@ export function createAstroConfig(
     ...(options?.siteUrl ? { siteUrl: options.siteUrl } : {}),
   })
 
+  // Validate theme directory exists
+  const themeDir = path.resolve(packageRoot, `src/theme/${blogConfig.theme}`)
+  if (!fs.existsSync(themeDir)) {
+    throw new Error(
+      `Theme "${blogConfig.theme}" not found at ${themeDir}. Supported themes: clean, wabi`,
+    )
+  }
+
   return {
     root: astroProjectRoot,
     publicDir,
@@ -120,7 +128,8 @@ export function createAstroConfig(
       ],
       resolve: {
         alias: {
-          '@theme': path.resolve(packageRoot, 'src/theme/clean'),
+          '@theme': path.resolve(packageRoot, `src/theme/${blogConfig.theme}`),
+          '@ui': path.resolve(packageRoot, 'src/ui'),
           '@mdx': path.resolve(packageRoot, 'src/mdx-components'),
         },
       },

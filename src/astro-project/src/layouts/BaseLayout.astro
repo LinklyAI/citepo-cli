@@ -171,6 +171,7 @@ const colorOverrides = buildColorOverrides()
     <Header
       client:load
       blogName={blogConfig.name}
+      logo={blogConfig.logo}
       navigation={blogConfig.navigation}
       basePath={blogConfig.basePath}
       currentLang={multiLang ? lang : undefined}
@@ -180,6 +181,12 @@ const colorOverrides = buildColorOverrides()
     <main class="flex-1">
       <slot />
     </main>
-    <Footer blogName={blogConfig.name} social={blogConfig.social} />
+    <Footer
+      blogName={blogConfig.name}
+      social={blogConfig.social}
+      basePath={blogConfig.basePath}
+      llmsText={blogConfig.llmsText}
+      skillMd={blogConfig.skillMd}
+    />
   </body>
 </html>

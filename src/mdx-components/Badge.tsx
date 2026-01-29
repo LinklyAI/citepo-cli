@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Badge as BadgeUI } from '@ui/badge'
 
 interface BadgeProps {
   children: ReactNode
@@ -7,8 +8,8 @@ interface BadgeProps {
 /** Inline badge label */
 export function Badge({ children }: BadgeProps) {
   return (
-    <span className="not-prose inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+    <BadgeUI variant="outline" className="not-prose">
       {children}
-    </span>
+    </BadgeUI>
   )
 }
