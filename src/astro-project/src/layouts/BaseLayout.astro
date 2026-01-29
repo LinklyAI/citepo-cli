@@ -44,6 +44,7 @@ const resolvedOgImage = ogImage
         title: title ?? blogConfig.name,
         ...(authors.length > 0 ? { author: authors[0] } : {}),
         site: blogConfig.name,
+        ...(blogConfig.theme ? { theme: blogConfig.theme } : {}),
       }).toString()}`
     : undefined
 
