@@ -1,131 +1,85 @@
 ---
 title: 为什么选择 CitePo 搭建博客
-description: 深入探讨为什么 CitePo 是开发者和 AI 初创团队搭建博客的理想选择 —— 快速、Git 驱动、零负担。
+description: 大多数博客工具让你在便利和控制权之间二选一。CitePo 两者兼得 —— 基于 Git 驱动，开箱即用，内容完全属于你。
 date: 2025-01-27
 tags: [citepo, 博客, 开发工具]
 authors: [CitePo]
-coverImage: ''
+coverImage: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=960&q=80'
 draft: false
 ---
 
-如果你是开发者或 AI 初创团队的成员，你一定深有体会：你需要一个博客来分享动态、建立品牌影响力、获取自然流量 —— 但搭建博客不应该像造一个新产品那么复杂。
+每个开发者都有过这样的经历：你想要一个博客，用来分享正在做的事情、建立个人或团队的影响力、为产品获取自然流量。但每次坐下来搭建博客的时候，你花了几个小时折腾工具链，一个字也没写出来。
 
-这正是 CitePo 存在的理由。
+这不是你的问题。这是整个开发者社区最常见的困扰之一，也是我们创建 CitePo 的原因。
 
-## 现有方案的问题
+## 博客的两难困境
 
-### WordPress / Ghost
+当前的博客生态存在一个令人不舒服的事实：现有工具迫使你在便利性和控制权之间做出取舍。
 
-功能强大的 CMS 平台，但带来的负担也不小：
+Medium、Substack 这类平台让你几分钟内就能开始写作，但你的内容寄托在别人的域名上、别人的品牌下、受制于别人的规则。本质上你是在为平台积累 SEO 权重，而读者和你之间的关系也归平台所有。写个人日记或许无所谓，但对于正在建立专业形象的开发者或创业团队来说，这不可接受。
 
-- **运维成本** —— 需要服务器、数据库，持续维护
-- **安全隐患** —— 频繁的更新和漏洞修复
-- **大材小用** —— 你只是想发布 Markdown，而不是管理一个 CMS
+![开发者的工作台，笔记本电脑与笔记本](https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=960&q=80)
 
-<Callout type="warning">
-传统 CMS 需要持续的服务器维护和安全补丁——这些精力本应用来写内容。
+另一极是 WordPress 或 Ghost 这类自托管方案。它们给了你完全的控制权，但也带来了运维负担 —— 服务器要维护、数据库要备份、安全补丁要打。你只是想要一个博客，不是想当运维工程师。
+
+Hugo、Jekyll、Gatsby 等静态站点生成器介于两者之间。理论上它们对开发者很友好，但实际操作中，你的仓库有 90% 都是框架代码，真正的内容只占 10%。配置文件、插件依赖、主题模板代码层层叠加。每次隔几个月回来，总有什么东西坏了，你得先花一下午更新依赖，才能写下第一个字。
+
+## 一种不同的思路
+
+CitePo 采用了一个根本性不同的立场：**你的博客仓库应该只包含你的内容**。
+
+没有 `package.json`，没有 `node_modules`，没有主题文件占据你的仓库。当你创建一个 CitePo 博客时，Git 仓库里只有真正重要的东西 —— MDX 格式的文章、一个配置文件、你的图片素材。仅此而已。
+
+引擎、主题、构建流水线 —— 这些全部由 CitePo 管理。当我们改进主题或添加新功能时，你无需动仓库里的任何东西就能自动获得更新。你的仓库始终保持干净、专注，即使一年后回来看也能立刻理解。
+
+这种分离对写作体验有深远的影响。打开你的博客仓库，感觉就像打开一个文件夹，而不是一个软件项目。没有认知负担，没有构建系统要理解，没有框架要学习。
+
+![简洁的桌面工作环境](https://images.unsplash.com/photo-1593062096033-9a26b09da705?w=960&q=80)
+
+## Git 即真相之源
+
+CitePo 的一切都通过 Git 流转。你用自己喜欢的编辑器写作 —— VS Code、Cursor、Vim，随你选择。用 `npx citepo dev` 本地预览。满意之后 `git push`，博客就部署了。
+
+这套工作流的好处远不止简单。因为内容在 Git 里，你天然拥有版本历史。你可以用 Pull Request 来审核草稿，通过 Git 平台邀请协作者，AI 编程助手可以直接在编辑器里帮你写作和修改。不需要学习任何私有 CMS，也不会遇到网页编辑器在浏览器崩溃时丢失你作品的情况。
+
+对团队来说这尤其强大。产品更新可以走和代码变更一样的 PR 审核流程，市场和工程团队在同一套工作流里协作，一切都可审计、可回滚、透明清晰。
+
+## 为 AI 时代而生
+
+我们带着一个信念构建 CitePo：在未来几年，你博客的很大一部分"读者"将是代替人类收集信息的 AI 助手。
+
+因此，每个 CitePo 博客都会自动生成 `llms.txt` —— 一份机器可读的索引，帮助 AI 助手理解和引用你的内容。结合 JSON-LD 结构化数据，你的文章会成为 AI 系统知识图谱的一部分。这不是噱头，而是内容被发现和消费方式的根本性转变。
+
+<Callout type="tip">
+  CitePo 自动生成 `llms.txt`、JSON-LD 结构化数据、sitemap、RSS 和 Open Graph
+  标签。你的内容从发布那刻起，就同时为人类读者和 AI 助手做好了优化。
 </Callout>
 
-### 静态站点生成器（Hugo、Jekyll、Gatsby）
+## 无需费力，即刻精美
 
-更接近开发者想要的，但仍有摩擦：
+CitePo 附带精心设计的主题，无需任何定制就能呈现出色的视觉效果。排版针对中、英、日三语长文阅读做了专门优化，暗色模式无缝切换，布局响应式且干净，代码块自带语法高亮。一切开箱即用。
 
-- **复杂配置** —— 主题、插件、构建流水线
-- **依赖地狱** —— 数百个包，频繁出问题
-- **仓库 90% 都是引擎代码** —— 真正的内容被框架代码淹没
-
-<Callout type="warning">
-使用 SSG，你最终在维护一套复杂的构建系统，而不是专注于内容本身。
-</Callout>
-
-### Medium / Substack
-
-容易上手，但：
-
-- **没有所有权** —— 内容寄存在别人的平台上
-- **品牌受限** —— 和平台上所有博客长得一样
-- **SEO 受限** —— 你在为平台的域名做贡献，而不是自己的
-
-<Callout type="warning">
-托管平台用便利换控制权——你的内容、品牌和 SEO 都属于别人。
-</Callout>
-
-## CitePo 有何不同
-
-<CardGroup cols={2}>
-  <Card title="纯内容仓库" icon="folder" href="https://citepo.com">
-    没有 `package.json`，没有 `node_modules`，没有模板代码。Git 仓库只包含文章、配置和资源。
-  </Card>
-  <Card title="Git 优先工作流" icon="git-branch" href="https://citepo.com">
-    用任意编辑器写作，`npx citepo dev` 预览，`git push` 部署。支持 AI 助手、PR 审查和团队协作。
-  </Card>
-  <Card title="AI 原生设计" icon="sparkles" href="https://citepo.com">
-    自动生成 `llms.txt`、`skill.md` 和 JSON-LD 结构化数据——AI 助手也能发现你的博客。
-  </Card>
-  <Card title="开箱即用的精美设计" icon="palette" href="https://citepo.com">
-    内置 `clean` 主题，暖中性色调、暗色模式、响应式设计，完美支持中英日三语排版。
-  </Card>
-  <Card title="极致性能" icon="zap" href="https://citepo.com">
-    Astro 构建静态 HTML，Lighthouse 99+，即时加载，极小 JavaScript 体积。
-  </Card>
-  <Card title="SEO 一步到位" icon="search" href="https://citepo.com">
-    自动生成 sitemap、robots.txt、RSS、Open Graph、Twitter Cards、Canonical URL 和 JSON-LD。
-  </Card>
-</CardGroup>
-
-## CitePo 适合谁？
-
-<AccordionGroup>
-  <Accordion title="AI 初创团队">
-    需要博客来建立权威、分享产品动态？CitePo 让你几秒内从零到发布，还有 `llms.txt` 等 AI 原生特性，让你的内容被 AI 助手发现。
-  </Accordion>
-  <Accordion title="开发者布道师">
-    想要无摩擦地发布技术内容？用你喜欢的编辑器写作，MDX 实现丰富排版，通过 Git 部署——你已经熟悉的工作流。
-  </Accordion>
-  <Accordion title="独立开发者">
-    想要专业博客但不想承担运维？无需管理服务器，无需维护数据库，无需更新 CMS。写完推送即可。
-  </Accordion>
-  <Accordion title="喜欢 Markdown 的所有人">
-    如果你更喜欢用 Markdown 写作而不是点击 CMS 界面，CitePo 就是为你打造的。纯内容，零冗余。
-  </Accordion>
-</AccordionGroup>
+我们对细节的执着是为了让你不必操心。Lighthouse 评分稳定在 99 以上，页面瞬间加载 —— 因为 Astro 生成的是纯静态 HTML，JavaScript 体积极小。阅读体验快速、无干扰、无障碍。
 
 ## 快速开始
 
-创建博客只需几步：
+创建一个博客只需三条命令：
 
-<Steps>
-  <Step title="创建博客">
-    运行脚手架命令生成新博客项目：
-    ```bash
-    npx citepo new my-blog
-    ```
-  </Step>
-  <Step title="进入项目目录">
-    ```bash
-    cd my-blog
-    ```
-  </Step>
-  <Step title="启动开发服务器">
-    本地预览你的博客：
-    ```bash
-    npx citepo dev
-    ```
-  </Step>
-</Steps>
+```bash
+npx citepo new my-blog
+cd my-blog
+npx citepo dev
+```
 
-就这么简单。无需注册账号，无需信用卡，无需配置向导。直接开始写作。
+这就是全部的搭建过程。不需要注册账号，不需要信用卡，不需要配置向导。博客已经在本地运行，等待你的第一篇文章。准备好上线时，将仓库连接到 CitePo 托管，之后每次 `git push` 都会自动触发部署。
 
-## 未来规划
+![在咖啡馆用笔记本电脑打字的人](https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=960&q=80)
 
-CitePo 在持续进化中，以下是路线图：
+## 未来展望
 
-- <Badge variant="default">计划中</Badge> **自定义域名** —— 将你的域名指向博客
-- <Badge variant="default">计划中</Badge> **数据分析** —— 隐私友好的访客统计
-- <Badge variant="secondary">远期</Badge> **更多主题** —— 更多设计选择
-- <Badge variant="secondary">远期</Badge> **多作者** —— 团队博客与作者档案
+CitePo 在持续演进中。自定义域名、隐私友好的数据分析、更多主题选择、多作者协作支持都在路线图上。我们正在构建自己一直想要的博客平台 —— 一个尊重你的时间、你的内容和你的所有权的平台。
 
-我们在打造自己一直想要的博客平台。如果你也有同感，试试 CitePo 吧。
+如果你曾经希望拥有一个像 Git 仓库一样简洁、又像专业设计网站一样精美的博客，试试 CitePo 吧。我们相信你会立刻感受到不同。
 
 ---
 

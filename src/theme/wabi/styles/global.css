@@ -12,7 +12,8 @@
  * Light Mode — Wabi
  * ────────────────────────────────────────────── */
 :root {
-  --background: #faf9f7;
+  /* --background: #faf9f7; */
+  --background: #fffdf9;
   --foreground: #3d3935;
   --card: #ffffff;
   --card-foreground: #3d3935;
@@ -22,7 +23,7 @@
   --primary-foreground: #ffffff;
   --secondary: #f5f4f2;
   --secondary-foreground: #3d3935;
-  --muted: #f0eeeb;
+  --muted: #e3e1de;
   --muted-foreground: #8b8580;
   --accent: #e8deda;
   --accent-foreground: #854835;

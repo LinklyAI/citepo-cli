@@ -21,18 +21,9 @@ export default function Footer({ blogName, social, basePath = '/', llmsText, ski
 
   return (
     <footer className="py-10 mt-auto">
-      <div className="max-w-3xl mx-auto px-6 flex flex-col items-center gap-3 text-sm text-muted-foreground">
+      <div className="max-w-5xl mx-auto px-6 flex items-center gap-3 text-sm text-muted-foreground">
         <div className="flex items-center gap-1.5 flex-wrap justify-center">
           <span>&copy; {currentYear} {blogName}</span>
-          <span className="text-border">&middot;</span>
-          <a
-            href="https://citepo.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-foreground transition-colors"
-          >
-            Powered by CitePo
-          </a>
           {llmsText && (
             <>
               <span className="text-border">&middot;</span>
@@ -75,6 +66,16 @@ export default function Footer({ blogName, social, basePath = '/', llmsText, ski
             )}
           </div>
         )}
+        <div className="ml-auto">
+          <a
+            href="https://citepo.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground transition-colors"
+          >
+            Powered by <span className=" font-medium">CitePo</span>
+          </a>
+        </div>
       </div>
     </footer>
   )

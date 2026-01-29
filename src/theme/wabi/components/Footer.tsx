@@ -21,7 +21,7 @@ export default function Footer({ blogName, social, basePath = '/', llmsText, ski
 
   return (
     <footer className="border-t border-border bg-muted/30 py-8 mt-auto">
-      <div className="max-w-3xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+      <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
         <div className="flex items-center gap-1.5 flex-wrap justify-center">
           <span>&copy; {currentYear} {blogName}</span>
           <span className="text-border">&middot;</span>

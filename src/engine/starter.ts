@@ -27,6 +27,7 @@ export function buildBlogJson(
     config.languages = allLanguages
   }
 
+  config.hero = { image: 'https://cdn.citepo.com/assets/clean-banner.webp' }
   config.contextual = { options: ['copy', 'view', 'chatgpt', 'claude'] }
   config.basePath = '/'
   config.rss = true

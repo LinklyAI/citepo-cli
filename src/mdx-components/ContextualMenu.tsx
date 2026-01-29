@@ -61,7 +61,7 @@ export function ContextualMenu({ options }: ContextualMenuProps) {
       )}
 
       {dropdownItems.length > 0 && (
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
