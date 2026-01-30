@@ -1,0 +1,54 @@
+name: Package Runtime
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  package-runtime:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Package runtime
+        run: pnpm package:runtime dist-runtime
+
+      - name: Read version
+        run: echo "CLI_VERSION=$(node -e \"const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); console.log(pkg.version)\")" >> $GITHUB_ENV
+
+      - name: Configure R2 credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          aws-region: auto
+
+      - name: Upload runtime package to R2
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+        run: |
+          OBJECT_KEY="cli/citepo/${CLI_VERSION}/citepo-cli.tar.gz"
+          aws s3 cp "dist-runtime/citepo-cli-${CLI_VERSION}.tar.gz" "s3://${R2_BUCKET_NAME}/${OBJECT_KEY}" \
+            --endpoint-url "https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          aws s3 cp "dist-runtime/citepo-cli-${CLI_VERSION}.tar.gz.sha256" "s3://${R2_BUCKET_NAME}/${OBJECT_KEY}.sha256" \
+            --endpoint-url "https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"

@@ -26,7 +26,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "schema:generate": "tsx src/engine/schema-cli.ts",
-    "generate:starter": "tsx scripts/generate-starter.ts"
+    "generate:starter": "tsx scripts/generate-starter.ts",
+    "package:runtime": "bash scripts/package-runtime.sh"
   },
   "keywords": [
     "blog",

@@ -37,10 +37,12 @@ const rssUrl = blogConfig.rss ? getRssUrl(lang, blogConfig) : undefined
 const multiLang = isMultiLang(blogConfig)
 
 // Resolve OG image: use provided ogImage, or auto-generate dynamic URL via /og-image.png
+// basePath prefix is needed so that subdirectory rewrite (e.g. citepo.com/blog/*) can proxy to Worker
+const ogBasePath = blogConfig.basePath === '/' ? '' : blogConfig.basePath
 const resolvedOgImage = ogImage
   ? (siteUrl && !ogImage.startsWith('http') ? `${siteUrl}${ogImage}` : ogImage)
   : siteUrl
-    ? `${siteUrl}/og-image.png?${new URLSearchParams({
+    ? `${siteUrl}${ogBasePath}/og-image.png?${new URLSearchParams({
         title: title ?? blogConfig.name,
         ...(authors.length > 0 ? { author: authors[0] } : {}),
         site: blogConfig.name,
@@ -145,7 +147,7 @@ const colorOverrides = buildColorOverrides()
       <link rel="alternate" type="application/rss+xml" title={blogConfig.name} href={rssUrl} />
     )}
 
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={`${blogConfig.basePath === '/' ? '' : blogConfig.basePath}/favicon.svg`} />
 
     {/* JSON-LD structured data */}
     <script type="application/ld+json" set:html={JSON.stringify(buildJsonLd())} />
