@@ -1,5 +1,6 @@
 import path from 'node:path'
 import fs from 'node:fs'
+import fsPromises from 'node:fs/promises'
 import type { AstroInlineConfig } from 'astro'
 import type { Plugin } from 'vite'
 import type { BlogConfig } from './config.js'
@@ -64,6 +65,20 @@ export function withPackageCwd(): () => void {
   const packageRoot = getPackageRoot()
   process.chdir(packageRoot)
   return () => process.chdir(originalCwd)
+}
+
+/**
+ * Clear Astro cache under the CLI package to avoid cross-project stale modules.
+ * Astro writes .astro/ into the package root when running inside the CLI.
+ */
+export async function clearAstroCache(): Promise<void> {
+  const packageRoot = getPackageRoot()
+  const cacheDir = path.resolve(packageRoot, 'src/astro-project/.astro')
+  try {
+    await fsPromises.rm(cacheDir, { recursive: true, force: true })
+  } catch {
+    // Ignore cache cleanup errors
+  }
 }
 
 export interface CreateAstroConfigOptions {

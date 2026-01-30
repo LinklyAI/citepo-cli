@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { loadBlogConfig } from '../../engine/config.js'
-import { createFullAstroConfig, withPackageCwd } from '../../engine/astro.js'
+import { clearAstroCache, createFullAstroConfig, withPackageCwd } from '../../engine/astro.js'
 import { handleCommandError } from '../error.js'
 
 export const devCommand = new Command('dev')
@@ -26,6 +26,9 @@ export const devCommand = new Command('dev')
 
     // Generate Astro config with dynamic integrations
     const astroConfig = await createFullAstroConfig(blogConfig, userDir, { port })
+
+    // Clear cached .astro to avoid cross-project stale modules
+    await clearAstroCache()
 
     // Start Astro dev server (switch cwd to package root so .astro/ SSR files can resolve deps)
     const { dev } = await import('astro')

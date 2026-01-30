@@ -15,7 +15,7 @@ export function buildBlogJson(
   allLanguages: LanguageCodeType[],
 ): Record<string, unknown> {
   const config: Record<string, unknown> = {
-    $schema: 'https://unpkg.com/citepo/schema.json',
+    $schema: 'https://cdn.citepo.com/assets/schema.json',
     name: options.name,
     description: options.description,
     theme: options.theme,

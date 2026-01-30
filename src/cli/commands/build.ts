@@ -2,7 +2,7 @@ import path from 'node:path'
 import { readdir, stat } from 'node:fs/promises'
 import { Command } from 'commander'
 import { loadBlogConfig } from '../../engine/config.js'
-import { createFullAstroConfig, withPackageCwd } from '../../engine/astro.js'
+import { clearAstroCache, createFullAstroConfig, withPackageCwd } from '../../engine/astro.js'
 import { scanMdxSecurity } from '../../engine/security.js'
 import { runPostBuild } from '../../engine/post-build.js'
 import { handleCommandError } from '../error.js'
@@ -60,6 +60,9 @@ export const buildCommand = new Command('build')
       outDir: options.outDir,
       siteUrl,
     })
+
+    // Clear cached .astro to avoid cross-project stale modules
+    await clearAstroCache()
 
     // Run Astro build (switch cwd to package root so .astro/ SSR files can resolve deps)
     const { build } = await import('astro')
