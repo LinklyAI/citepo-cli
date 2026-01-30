@@ -33,7 +33,9 @@ jobs:
         run: pnpm package:runtime dist-runtime
 
       - name: Read version
-        run: echo "CLI_VERSION=$(node -e \"const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); console.log(pkg.version)\")" >> $GITHUB_ENV
+        run: |
+          CLI_VERSION=$(node -p "require('./package.json').version")
+          echo "CLI_VERSION=$CLI_VERSION" >> $GITHUB_ENV
 
       - name: Configure R2 credentials
         uses: aws-actions/configure-aws-credentials@v4
