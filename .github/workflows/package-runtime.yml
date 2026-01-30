@@ -64,8 +64,8 @@ jobs:
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
         run: |
-          OBJECT_KEY="cli/citepo/${CLI_VERSION}/citepo-cli.tar"
-          aws s3 cp "dist-runtime/citepo-cli-${CLI_VERSION}.tar" "s3://${R2_BUCKET_NAME}/${OBJECT_KEY}" \
+          OBJECT_KEY="cli/citepo/${CLI_VERSION}/citepo-cli.tar.gz"
+          aws s3 cp "dist-runtime/citepo-cli-${CLI_VERSION}.tar.gz" "s3://${R2_BUCKET_NAME}/${OBJECT_KEY}" \
             --endpoint-url "https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
-          aws s3 cp "dist-runtime/citepo-cli-${CLI_VERSION}.tar.sha256" "s3://${R2_BUCKET_NAME}/${OBJECT_KEY}.sha256" \
+          aws s3 cp "dist-runtime/citepo-cli-${CLI_VERSION}.tar.gz.sha256" "s3://${R2_BUCKET_NAME}/${OBJECT_KEY}.sha256" \
             --endpoint-url "https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"

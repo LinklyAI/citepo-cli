@@ -39,8 +39,8 @@ cp -a src/astro-project \
 
 mkdir -p "$OUT_DIR"
 
-ARCHIVE_NAME="citepo-cli-${VERSION}.tar"
-tar -cf "${OUT_DIR}/${ARCHIVE_NAME}" -C "$STAGE_DIR" citepo-cli
+ARCHIVE_NAME="citepo-cli-${VERSION}.tar.gz"
+tar -czf "${OUT_DIR}/${ARCHIVE_NAME}" -C "$STAGE_DIR" citepo-cli
 
 sha256sum "${OUT_DIR}/${ARCHIVE_NAME}" > "${OUT_DIR}/${ARCHIVE_NAME}.sha256"
 
