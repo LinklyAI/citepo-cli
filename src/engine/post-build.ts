@@ -29,7 +29,7 @@ export async function runPostBuild(
   let totalSize = 0
 
   // Always generate robots.txt
-  const robotsTxt = generateRobotsTxt(siteUrl)
+  const robotsTxt = generateRobotsTxt(siteUrl, blogConfig.basePath)
   const robotsPath = path.join(outDir, 'robots.txt')
   await writeFile(robotsPath, robotsTxt, 'utf-8')
   generatedFiles.push('robots.txt')

@@ -52,6 +52,11 @@ describe('generateRobotsTxt', () => {
     const result = generateRobotsTxt('https://example.com')
     expect(result).toContain('Sitemap: https://example.com/sitemap-index.xml')
   })
+
+  it('should include basePath in sitemap when provided', () => {
+    const result = generateRobotsTxt('https://example.com', '/blog')
+    expect(result).toContain('Sitemap: https://example.com/blog/sitemap-index.xml')
+  })
 })
 
 // -- llms.txt --

@@ -1,7 +1,7 @@
 import rss from '@astrojs/rss'
 import { getCollection } from 'astro:content'
 import type { APIContext } from 'astro'
-import { isMultiLang, getPostUrl } from '../lib/i18n.ts'
+import { isMultiLang, filterPostsByLang, getPostUrl } from '../lib/i18n.ts'
 import blogConfig from 'virtual:blog-config'
 
 export async function GET(context: APIContext) {
@@ -15,14 +15,11 @@ export async function GET(context: APIContext) {
     return new Response(null, { status: 404 })
   }
 
-  // Multi-lang: RSS is under /[lang]/rss.xml; root /rss.xml not generated
-  if (isMultiLang(i18nConfig)) {
-    return new Response(null, { status: 404 })
-  }
-
-  // Single-lang: generate RSS for all posts
   const allPosts = await getCollection('blog', ({ data }) => !data.draft)
-  const sortedPosts = allPosts.sort(
+  const langPosts = isMultiLang(i18nConfig)
+    ? filterPostsByLang(allPosts, i18nConfig.defaultLanguage, i18nConfig)
+    : allPosts
+  const sortedPosts = langPosts.sort(
     (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
   )
 

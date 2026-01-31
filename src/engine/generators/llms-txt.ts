@@ -46,7 +46,7 @@ export function generateLlmsTxt(config: BlogConfig, posts: PostData[], siteUrl?:
       lines.push('')
 
       for (const post of posts) {
-        const url = siteUrl ? `${siteUrl}/${post.slug}` : `/${post.slug}`
+        const url = buildPostUrl(post, config, siteUrl)
         const desc = post.description ? `: ${post.description}` : ''
         lines.push(`- [${post.title}](${url})${desc}`)
       }
@@ -94,6 +94,9 @@ export function generateLlmsFullTxt(config: BlogConfig, posts: PostData[]): stri
 /** Build the correct URL for a post, handling multi-lang prefix stripping */
 function buildPostUrl(post: PostData, config: BlogConfig, siteUrl?: string): string {
   const isMultiLang = (config.languages?.length ?? 0) > 1
+  const basePath = config.basePath && config.basePath !== '/'
+    ? (config.basePath.startsWith('/') ? config.basePath : `/${config.basePath}`).replace(/\/+$/, '')
+    : ''
   let urlPath: string
 
   if (isMultiLang) {
@@ -103,11 +106,18 @@ function buildPostUrl(post: PostData, config: BlogConfig, siteUrl?: string): str
       ? post.slug.slice(langPrefix.length)
       : post.slug
 
-    // ALL languages get prefix in multi-lang mode
-    urlPath = `/${post.lang}/${cleanSlug}`
+    if (post.lang === config.defaultLanguage) {
+      urlPath = `/${cleanSlug}`
+    } else {
+      urlPath = `/${post.lang}/${cleanSlug}`
+    }
   } else {
     urlPath = `/${post.slug}`
   }
 
-  return siteUrl ? `${siteUrl}${urlPath}` : urlPath
+  const fullPath = basePath ? `${basePath}${urlPath}` : urlPath
+  if (!siteUrl) return fullPath
+
+  const normalizedSiteUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl
+  return `${normalizedSiteUrl}${fullPath}`
 }

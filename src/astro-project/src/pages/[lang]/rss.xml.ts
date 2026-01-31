@@ -1,7 +1,7 @@
 import rss from '@astrojs/rss'
 import { getCollection } from 'astro:content'
 import type { APIContext } from 'astro'
-import { isMultiLang, getAllLanguages, filterPostsByLang, getPostUrl } from '../../lib/i18n.ts'
+import { isMultiLang, getNonDefaultLanguages, filterPostsByLang, getPostUrl } from '../../lib/i18n.ts'
 import blogConfig from 'virtual:blog-config'
 
 /** Generate static paths for ALL languages */
@@ -16,7 +16,7 @@ export function getStaticPaths() {
 
   if (!isMultiLang(i18nConfig)) return []
 
-  return getAllLanguages(i18nConfig).map((lang) => ({
+  return getNonDefaultLanguages(i18nConfig).map((lang) => ({
     params: { lang },
     props: { lang },
   }))
@@ -34,6 +34,9 @@ export async function GET(context: APIContext) {
   }
 
   const lang = context.params.lang || i18nConfig.defaultLanguage
+  if (!isMultiLang(i18nConfig) || lang === i18nConfig.defaultLanguage) {
+    return new Response(null, { status: 404 })
+  }
   const allPosts = await getCollection('blog', ({ data }) => !data.draft)
   const langPosts = filterPostsByLang(allPosts, lang, i18nConfig)
   const sortedPosts = langPosts.sort(

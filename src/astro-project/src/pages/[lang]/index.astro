@@ -5,14 +5,14 @@ import PostCard from '@theme/components/PostCard.tsx'
 import Pagination from '@theme/components/Pagination.tsx'
 import HeroBanner from '@theme/components/HeroBanner.tsx'
 import blogConfig from 'virtual:blog-config'
-import { isMultiLang, getAllLanguages, filterPostsByLang, getPostUrl, getLangHomeUrl, getPaginationBaseUrl } from '../../lib/i18n.ts'
+import { isMultiLang, getNonDefaultLanguages, filterPostsByLang, getPostUrl, getLangHomeUrl, getPaginationBaseUrl } from '../../lib/i18n.ts'
 import { paginatePosts } from '../../lib/pagination.ts'
 
 export async function getStaticPaths() {
   if (!isMultiLang(blogConfig)) return []
 
-  // Generate for ALL languages
-  return getAllLanguages(blogConfig).map((lang) => ({
+  // Generate for non-default languages only
+  return getNonDefaultLanguages(blogConfig).map((lang) => ({
     params: { lang },
     props: { lang },
   }))

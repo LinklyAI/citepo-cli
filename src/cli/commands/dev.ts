@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { loadBlogConfig } from '../../engine/config.js'
+import { loadBlogConfig, normalizeBasePath } from '../../engine/config.js'
 import { clearAstroCache, createFullAstroConfig, withPackageCwd } from '../../engine/astro.js'
 import { handleCommandError } from '../error.js'
 
@@ -21,7 +21,7 @@ export const devCommand = new Command('dev')
 
     // Override basePath if specified via CLI
     if (options.basePath) {
-      blogConfig.basePath = options.basePath
+      blogConfig.basePath = normalizeBasePath(options.basePath)
     }
 
     // Generate Astro config with dynamic integrations

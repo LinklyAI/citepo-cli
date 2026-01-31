@@ -25,14 +25,6 @@ export default function Footer({ blogName, social, basePath = '/', llmsText, ski
         <div className="flex items-center gap-1.5 flex-wrap justify-center">
           <span>&copy; {currentYear} {blogName}</span>
           <span className="text-border">&middot;</span>
-          <a
-            href="https://citepo.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-foreground transition-colors"
-          >
-            Powered by CitePo
-          </a>
           {llmsText && (
             <>
               <span className="text-border">&middot;</span>
@@ -75,6 +67,14 @@ export default function Footer({ blogName, social, basePath = '/', llmsText, ski
             )}
           </div>
         )}
+        <a
+          href="https://citepo.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-foreground transition-colors text-xs"
+        >
+          Powered by <span className="font-medium">CitePo</span>
+        </a>
       </div>
     </footer>
   )

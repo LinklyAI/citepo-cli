@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content'
 import BaseLayout from '../../../layouts/BaseLayout.astro'
 import PostCard from '@theme/components/PostCard.tsx'
 import blogConfig from 'virtual:blog-config'
-import { isMultiLang, getAllLanguages, filterPostsByLang, getPostUrl, getLangHomeUrl } from '../../../lib/i18n.ts'
+import { isMultiLang, getNonDefaultLanguages, filterPostsByLang, getPostUrl, getLangHomeUrl, buildAlternateLanguagesForTag } from '../../../lib/i18n.ts'
 
 export async function getStaticPaths() {
   if (!isMultiLang(blogConfig)) return []
@@ -11,8 +11,8 @@ export async function getStaticPaths() {
   const allPosts = await getCollection('blog', ({ data }) => !data.draft)
   const paths: { params: { lang: string; tag: string }; props: { lang: string; tag: string; posts: typeof allPosts } }[] = []
 
-  // Generate for ALL languages
-  for (const lang of getAllLanguages(blogConfig)) {
+  // Generate for non-default languages only
+  for (const lang of getNonDefaultLanguages(blogConfig)) {
     const langPosts = filterPostsByLang(allPosts, lang, blogConfig)
     const tagSet = new Set<string>()
     for (const post of langPosts) {
@@ -39,10 +39,19 @@ export async function getStaticPaths() {
 }
 
 const { lang, tag, posts } = Astro.props
+const allPosts = await getCollection('blog', ({ data }) => !data.draft)
 const homeUrl = getLangHomeUrl(lang, blogConfig)
+const alternateLanguages = isMultiLang(blogConfig)
+  ? buildAlternateLanguagesForTag(tag, allPosts, blogConfig)
+  : {}
 ---
 
-<BaseLayout lang={lang} title={`#${tag}`} description={`Posts tagged with "${tag}"`}>
+<BaseLayout
+  lang={lang}
+  title={`#${tag}`}
+  description={`Posts tagged with "${tag}"`}
+  alternateLanguages={alternateLanguages}
+>
   <div class="max-w-3xl mx-auto px-4 py-12">
     <div class="mb-10">
       <a

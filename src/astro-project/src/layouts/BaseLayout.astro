@@ -4,7 +4,7 @@ import '@user-style'
 import Header from '@theme/components/Header.tsx'
 import Footer from '@theme/components/Footer.tsx'
 import blogConfig from 'virtual:blog-config'
-import { isMultiLang, getRssUrl } from '../lib/i18n.ts'
+import { isMultiLang, getRssUrl, buildAlternateLanguagesForPath } from '../lib/i18n.ts'
 
 interface Props {
   title?: string
@@ -32,13 +32,21 @@ const {
 
 const pageTitle = title === blogConfig.name ? title : `${title} - ${blogConfig.name}`
 const siteUrl = blogConfig.siteUrl
+const normalizedSiteUrl = siteUrl ? siteUrl.replace(/\/+$/, '') : undefined
+const normalizedBasePath = blogConfig.basePath === '/'
+  ? ''
+  : blogConfig.basePath.replace(/\/+$/, '')
 const canonicalUrl = siteUrl ? `${siteUrl}${Astro.url.pathname}` : undefined
 const rssUrl = blogConfig.rss ? getRssUrl(lang, blogConfig) : undefined
 const multiLang = isMultiLang(blogConfig)
+const resolvedAlternateLanguages =
+  multiLang && type === 'website' && Object.keys(alternateLanguages).length === 0
+    ? buildAlternateLanguagesForPath(Astro.url.pathname, blogConfig)
+    : alternateLanguages
 
 // Resolve OG image: use provided ogImage, or auto-generate dynamic URL via /og-image.png
 // basePath prefix is needed so that subdirectory rewrite (e.g. citepo.com/blog/*) can proxy to Worker
-const ogBasePath = blogConfig.basePath === '/' ? '' : blogConfig.basePath
+const ogBasePath = normalizedBasePath
 const resolvedOgImage = ogImage
   ? (siteUrl && !ogImage.startsWith('http') ? `${siteUrl}${ogImage}` : ogImage)
   : siteUrl
@@ -75,7 +83,7 @@ function buildJsonLd() {
     name: blogConfig.name,
     description: blogConfig.description,
   }
-  if (siteUrl) data.url = siteUrl
+  if (normalizedSiteUrl) data.url = `${normalizedSiteUrl}${normalizedBasePath}`
   return data
 }
 
@@ -127,18 +135,18 @@ const colorOverrides = buildColorOverrides()
     {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
 
     {/* Alternate language links (SEO) */}
-    {multiLang && Object.entries(alternateLanguages).map(([altLang, altUrl]) => (
+    {multiLang && Object.entries(resolvedAlternateLanguages).map(([altLang, altUrl]) => (
       <link
         rel="alternate"
         hreflang={altLang}
         href={siteUrl ? `${siteUrl}${altUrl}` : altUrl}
       />
     ))}
-    {multiLang && siteUrl && Object.keys(alternateLanguages).length > 0 && (
+    {multiLang && siteUrl && Object.keys(resolvedAlternateLanguages).length > 0 && (
       <link
         rel="alternate"
         hreflang="x-default"
-        href={`${siteUrl}${alternateLanguages[blogConfig.defaultLanguage] || '/'}`}
+        href={`${siteUrl}${resolvedAlternateLanguages[blogConfig.defaultLanguage] || '/'}`}
       />
     )}
 
@@ -180,7 +188,7 @@ const colorOverrides = buildColorOverrides()
       basePath={blogConfig.basePath}
       currentLang={multiLang ? lang : undefined}
       languages={multiLang ? blogConfig.languages : undefined}
-      translations={multiLang ? alternateLanguages : undefined}
+      translations={multiLang ? resolvedAlternateLanguages : undefined}
     />
     <main class="flex-1">
       <slot />

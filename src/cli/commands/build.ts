@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { readdir, stat } from 'node:fs/promises'
 import { Command } from 'commander'
-import { loadBlogConfig } from '../../engine/config.js'
+import { loadBlogConfig, normalizeBasePath } from '../../engine/config.js'
 import { clearAstroCache, createFullAstroConfig, withPackageCwd } from '../../engine/astro.js'
 import { scanMdxSecurity } from '../../engine/security.js'
 import { runPostBuild } from '../../engine/post-build.js'
@@ -29,7 +29,7 @@ export const buildCommand = new Command('build')
 
     // Override basePath if specified via CLI
     if (options.basePath) {
-      blogConfig.basePath = options.basePath
+      blogConfig.basePath = normalizeBasePath(options.basePath)
     }
     const siteUrl = options.siteUrl
 

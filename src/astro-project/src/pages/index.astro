@@ -5,21 +5,19 @@ import PostCard from '@theme/components/PostCard.tsx'
 import Pagination from '@theme/components/Pagination.tsx'
 import HeroBanner from '@theme/components/HeroBanner.tsx'
 import blogConfig from 'virtual:blog-config'
-import { isMultiLang, getPostUrl, getLangHomeUrl, getPaginationBaseUrl } from '../lib/i18n.ts'
+import { isMultiLang, filterPostsByLang, getPostUrl, getLangHomeUrl, getPaginationBaseUrl } from '../lib/i18n.ts'
 import { paginatePosts } from '../lib/pagination.ts'
 
-// Multi-lang: redirect root / to /{defaultLang}/
-if (isMultiLang(blogConfig)) {
-  return Astro.redirect(getLangHomeUrl(blogConfig.defaultLanguage, blogConfig))
-}
-
-// Single-lang: show all posts
+// Root always renders default language content (no redirect)
 const allPosts = await getCollection('blog', ({ data }) => !data.draft)
-const sortedPosts = allPosts.sort(
+const lang = blogConfig.defaultLanguage
+const langPosts = isMultiLang(blogConfig)
+  ? filterPostsByLang(allPosts, lang, blogConfig)
+  : allPosts
+const sortedPosts = langPosts.sort(
   (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
 )
 
-const lang = blogConfig.defaultLanguage
 const { items, totalPages, currentPage } = paginatePosts(sortedPosts, 1, blogConfig.postsPerPage)
 const homeUrl = getLangHomeUrl(lang, blogConfig)
 const paginationBase = getPaginationBaseUrl(lang, blogConfig)

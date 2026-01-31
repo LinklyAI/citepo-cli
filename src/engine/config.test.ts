@@ -72,6 +72,21 @@ describe('validateBlogConfig', () => {
     expect(config.description).toBe('')
   })
 
+  it('should normalize basePath without leading slash', () => {
+    const config = validateBlogConfig({ name: 'test', basePath: 'blog/' })
+    expect(config.basePath).toBe('/blog')
+  })
+
+  it('should normalize basePath with extra slashes', () => {
+    const config = validateBlogConfig({ name: 'test', basePath: '//blog//' })
+    expect(config.basePath).toBe('/blog')
+  })
+
+  it('should reject basePath as full URL', () => {
+    expect(() => validateBlogConfig({ name: 'test', basePath: 'https://example.com/blog' }))
+      .toThrowError()
+  })
+
   // --- theme field validation ---
 
   it('should accept theme "clean"', () => {

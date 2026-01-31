@@ -3,7 +3,7 @@ import { getCollection, render } from 'astro:content'
 import PostLayout from '../../layouts/PostLayout.astro'
 import blogConfig from 'virtual:blog-config'
 import * as mdxComponents from '@mdx'
-import { isMultiLang, getAllLanguages, filterPostsByLang, getPostSlug, getPostUrl, getTranslations } from '../../lib/i18n.ts'
+import { isMultiLang, getNonDefaultLanguages, filterPostsByLang, getPostSlug, getPostUrl, getTranslations } from '../../lib/i18n.ts'
 
 export async function getStaticPaths() {
   if (!isMultiLang(blogConfig)) return []
@@ -11,8 +11,8 @@ export async function getStaticPaths() {
   const allPosts = await getCollection('blog', ({ data }) => !data.draft)
   const paths: { params: { lang: string; slug: string }; props: { post: typeof allPosts[number]; lang: string } }[] = []
 
-  // Generate for ALL languages
-  for (const lang of getAllLanguages(blogConfig)) {
+  // Generate for non-default languages only
+  for (const lang of getNonDefaultLanguages(blogConfig)) {
     const langPosts = filterPostsByLang(allPosts, lang, blogConfig)
     for (const post of langPosts) {
       paths.push({

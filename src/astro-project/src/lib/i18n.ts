@@ -6,8 +6,9 @@
  *
  * URL structure:
  *   - Single-lang: no language prefix → /hello-world
- *   - Multi-lang: ALL languages prefixed → /zh/hello-world, /en/hello-world
- *   - Root / in multi-lang → redirect to /{defaultLang}/
+ *   - Multi-lang: default language has no prefix → /hello-world
+ *   - Multi-lang: other languages prefixed → /zh/hello-world
+ *   - Root / renders default language content (no redirect)
  */
 
 interface I18nConfig {
@@ -46,17 +47,101 @@ export function getPostSlug(postId: string, config: I18nConfig): string {
 /**
  * Get the URL path for a post.
  * - Single-lang: /{slug}
- * - Multi-lang: /{lang}/{slug} (ALL languages prefixed)
+ * - Multi-lang: default language no prefix, other languages prefixed
  */
 export function getPostUrl(postId: string, config: I18nConfig): string {
   const lang = getPostLang(postId, config)
   const slug = getPostSlug(postId, config)
   const base = config.basePath === '/' ? '' : config.basePath
 
-  if (!isMultiLang(config)) {
+  if (!isMultiLang(config) || lang === config.defaultLanguage) {
     return `${base}/${slug}`
   }
   return `${base}/${lang}/${slug}`
+}
+
+/** Build alternate language URLs for a generic page path. */
+export function buildAlternateLanguagesForPath(
+  pathname: string,
+  config: I18nConfig,
+): Record<string, string> {
+  if (!isMultiLang(config)) return {}
+
+  const base = config.basePath === '/' ? '' : config.basePath
+  const languages = config.languages ?? [config.defaultLanguage]
+  const langSet = new Set(languages)
+
+  let relative = pathname
+  if (base && relative.startsWith(base)) {
+    relative = relative.slice(base.length) || '/'
+  }
+  if (!relative.startsWith('/')) relative = `/${relative}`
+
+  const segments = relative.split('/').filter(Boolean)
+  if (segments.length > 0 && langSet.has(segments[0])) {
+    const rest = segments.slice(1).join('/')
+    relative = rest ? `/${rest}` : '/'
+  }
+
+  const isHome = relative === '/' || relative === ''
+  const translations: Record<string, string> = {}
+
+  for (const lang of languages) {
+    if (isHome) {
+      translations[lang] = getLangHomeUrl(lang, config)
+      continue
+    }
+    const suffix =
+      lang === config.defaultLanguage ? relative : `/${lang}${relative}`
+    translations[lang] = base ? `${base}${suffix}` : suffix
+  }
+
+  return translations
+}
+
+type TagPostLike = { id: string; data?: { tags?: string[] } }
+
+/** Build alternate language URLs for a tag page, skipping missing tags. */
+export function buildAlternateLanguagesForTag(
+  tag: string,
+  posts: TagPostLike[],
+  config: I18nConfig,
+): Record<string, string> {
+  if (!isMultiLang(config)) return {}
+
+  const translations: Record<string, string> = {}
+  const languages = getAllLanguages(config)
+
+  for (const lang of languages) {
+    const langPosts = filterPostsByLang(posts, lang, config)
+    const hasTag = langPosts.some((post) => (post.data?.tags ?? []).includes(tag))
+    if (!hasTag) continue
+    translations[lang] = `${getTagsBaseUrl(lang, config)}/${tag}`
+  }
+
+  return translations
+}
+
+/** Build alternate language URLs for pagination pages, skipping missing pages. */
+export function buildAlternateLanguagesForPagination(
+  page: number,
+  posts: { id: string }[],
+  config: I18nConfig,
+  postsPerPage: number,
+): Record<string, string> {
+  if (!isMultiLang(config)) return {}
+
+  const translations: Record<string, string> = {}
+  const languages = getAllLanguages(config)
+
+  for (const lang of languages) {
+    const langPosts = filterPostsByLang(posts, lang, config)
+    const totalPages = Math.ceil(langPosts.length / postsPerPage)
+    if (page < 2 || page > totalPages) continue
+    translations[lang] = `${getPaginationBaseUrl(lang, config)}/${page}`
+  }
+
+  return translations
 }
 
 /** Filter posts by language */
@@ -72,6 +157,13 @@ export function filterPostsByLang<T extends { id: string }>(
 export function getAllLanguages(config: I18nConfig): string[] {
   if (!isMultiLang(config)) return [config.defaultLanguage]
   return config.languages ?? [config.defaultLanguage]
+}
+
+/** Get all non-default languages (for prefixed routes). */
+export function getNonDefaultLanguages(config: I18nConfig): string[] {
+  if (!isMultiLang(config)) return []
+  const languages = config.languages ?? [config.defaultLanguage]
+  return languages.filter((lang) => lang !== config.defaultLanguage)
 }
 
 /** Find translations of a post across languages */
@@ -102,27 +194,27 @@ export function getTranslations(
  */
 export function getLangHomeUrl(lang: string, config: I18nConfig): string {
   const base = config.basePath === '/' ? '' : config.basePath
-  if (!isMultiLang(config)) return base || '/'
+  if (!isMultiLang(config) || lang === config.defaultLanguage) return base || '/'
   return `${base}/${lang}/`
 }
 
 /** Get the tags base URL for a language */
 export function getTagsBaseUrl(lang: string, config: I18nConfig): string {
   const base = config.basePath === '/' ? '' : config.basePath
-  if (!isMultiLang(config)) return `${base}/tags`
+  if (!isMultiLang(config) || lang === config.defaultLanguage) return `${base}/tags`
   return `${base}/${lang}/tags`
 }
 
 /** Get the RSS URL for a language */
 export function getRssUrl(lang: string, config: I18nConfig): string {
   const base = config.basePath === '/' ? '' : config.basePath
-  if (!isMultiLang(config)) return `${base}/rss.xml`
+  if (!isMultiLang(config) || lang === config.defaultLanguage) return `${base}/rss.xml`
   return `${base}/${lang}/rss.xml`
 }
 
 /** Get the pagination base URL for a language */
 export function getPaginationBaseUrl(lang: string, config: I18nConfig): string {
   const base = config.basePath === '/' ? '' : config.basePath
-  if (!isMultiLang(config)) return `${base}/page`
+  if (!isMultiLang(config) || lang === config.defaultLanguage) return `${base}/page`
   return `${base}/${lang}/page`
 }

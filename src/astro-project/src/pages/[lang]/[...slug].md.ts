@@ -1,7 +1,7 @@
 import type { APIRoute, GetStaticPaths } from 'astro'
 import { getCollection } from 'astro:content'
 import blogConfig from 'virtual:blog-config'
-import { isMultiLang, getAllLanguages, filterPostsByLang, getPostSlug, getPostLang } from '../../lib/i18n.ts'
+import { isMultiLang, getNonDefaultLanguages, filterPostsByLang, getPostSlug } from '../../lib/i18n.ts'
 import { readFile } from 'node:fs/promises'
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -10,7 +10,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const posts = await getCollection('blog', ({ data }) => !data.draft)
   const paths: { params: { lang: string; slug: string }; props: { post: typeof posts[number] } }[] = []
 
-  for (const lang of getAllLanguages(blogConfig)) {
+  for (const lang of getNonDefaultLanguages(blogConfig)) {
     const langPosts = filterPostsByLang(posts, lang, blogConfig)
     for (const post of langPosts) {
       paths.push({

@@ -3,15 +3,22 @@ import { getCollection, render } from 'astro:content'
 import PostLayout from '../layouts/PostLayout.astro'
 import blogConfig from 'virtual:blog-config'
 import * as mdxComponents from '@mdx'
-import { isMultiLang, getPostSlug, getPostUrl } from '../lib/i18n.ts'
+import { isMultiLang, filterPostsByLang, getPostSlug, getPostUrl, getTranslations } from '../lib/i18n.ts'
 
 export async function getStaticPaths() {
-  // Multi-lang: all posts are served under /[lang]/[...slug], not here
-  if (isMultiLang(blogConfig)) return []
-
-  // Single-lang: generate all posts at root level
   const posts = await getCollection('blog', ({ data }) => !data.draft)
-  return posts.map((post) => ({
+
+  if (!isMultiLang(blogConfig)) {
+    return posts.map((post) => ({
+      params: { slug: getPostSlug(post.id, blogConfig) },
+      props: { post },
+    }))
+  }
+
+  // Multi-lang: default language posts are served at root
+  const defaultLang = blogConfig.defaultLanguage
+  const defaultPosts = filterPostsByLang(posts, defaultLang, blogConfig)
+  return defaultPosts.map((post) => ({
     params: { slug: getPostSlug(post.id, blogConfig) },
     props: { post },
   }))
@@ -20,10 +27,14 @@ export async function getStaticPaths() {
 const { post } = Astro.props
 const lang = blogConfig.defaultLanguage
 const allPosts = await getCollection('blog', ({ data }) => !data.draft)
+const langPosts = isMultiLang(blogConfig) ? filterPostsByLang(allPosts, lang, blogConfig) : allPosts
 const { Content, headings } = await render(post)
+const translations = isMultiLang(blogConfig)
+  ? getTranslations(post.id, allPosts, blogConfig)
+  : {}
 
 // Compute prev/next posts
-const sortedPosts = allPosts.sort(
+const sortedPosts = langPosts.sort(
   (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
 )
 const currentIndex = sortedPosts.findIndex((p) => p.id === post.id)
@@ -40,6 +51,7 @@ const nextPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentInde
   coverImage={post.data.coverImage || undefined}
   headings={headings}
   lang={lang}
+  translations={translations}
   prevPost={prevPost ? { title: prevPost.data.title, url: getPostUrl(prevPost.id, blogConfig) } : undefined}
   nextPost={nextPost ? { title: nextPost.data.title, url: getPostUrl(nextPost.id, blogConfig) } : undefined}
 >

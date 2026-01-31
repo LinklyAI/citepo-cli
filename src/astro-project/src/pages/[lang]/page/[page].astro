@@ -5,7 +5,7 @@ import PostCard from '@theme/components/PostCard.tsx'
 import Pagination from '@theme/components/Pagination.tsx'
 import HeroBanner from '@theme/components/HeroBanner.tsx'
 import blogConfig from 'virtual:blog-config'
-import { isMultiLang, getAllLanguages, filterPostsByLang, getPostUrl, getLangHomeUrl, getPaginationBaseUrl } from '../../../lib/i18n.ts'
+import { isMultiLang, getNonDefaultLanguages, filterPostsByLang, getPostUrl, getLangHomeUrl, getPaginationBaseUrl, buildAlternateLanguagesForPagination } from '../../../lib/i18n.ts'
 import { paginatePosts, generatePaginationPaths } from '../../../lib/pagination.ts'
 
 export async function getStaticPaths() {
@@ -14,8 +14,8 @@ export async function getStaticPaths() {
   const allPosts = await getCollection('blog', ({ data }) => !data.draft)
   const paths: { params: { lang: string; page: string }; props: { lang: string; page: number } }[] = []
 
-  // Generate for ALL languages
-  for (const lang of getAllLanguages(blogConfig)) {
+  // Generate for non-default languages only
+  for (const lang of getNonDefaultLanguages(blogConfig)) {
     const langPosts = filterPostsByLang(allPosts, lang, blogConfig)
     const pages = generatePaginationPaths(langPosts.length, blogConfig.postsPerPage)
 
@@ -40,9 +40,16 @@ const sortedPosts = langPosts.sort(
 const { items, totalPages, currentPage } = paginatePosts(sortedPosts, page, blogConfig.postsPerPage)
 const homeUrl = getLangHomeUrl(lang, blogConfig)
 const paginationBase = getPaginationBaseUrl(lang, blogConfig)
+const alternateLanguages = isMultiLang(blogConfig)
+  ? buildAlternateLanguagesForPagination(page, allPosts, blogConfig, blogConfig.postsPerPage)
+  : {}
 ---
 
-<BaseLayout lang={lang} title={`Page ${currentPage} - ${blogConfig.name}`}>
+<BaseLayout
+  lang={lang}
+  title={`Page ${currentPage} - ${blogConfig.name}`}
+  alternateLanguages={alternateLanguages}
+>
   <div class="max-w-3xl mx-auto px-4 py-12">
     <HeroBanner image={blogConfig.hero?.image} alt={blogConfig.name} />
 

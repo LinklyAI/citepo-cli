@@ -96,9 +96,25 @@ export const BlogConfigSchema = z.object({
 export type BlogConfig = z.infer<typeof BlogConfigSchema>
 export type LanguageCodeType = z.infer<typeof LanguageCode>
 
+/** Normalize basePath to a leading-slash, no-trailing-slash path. */
+export function normalizeBasePath(basePath: string): string {
+  const trimmed = basePath.trim()
+  if (!trimmed || trimmed === '/') return '/'
+  if (trimmed.includes('://')) {
+    throw new Error('basePath must be a path, not a full URL')
+  }
+
+  let normalized = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+  normalized = normalized.replace(/\/+$/, '')
+  normalized = `/${normalized.replace(/^\/+/, '')}`
+  return normalized === '/' ? '/' : normalized
+}
+
 /** Validate blog.json config, returns parsed data or throws on error */
 export function validateBlogConfig(raw: unknown): BlogConfig {
-  return BlogConfigSchema.parse(raw)
+  const config = BlogConfigSchema.parse(raw)
+  config.basePath = normalizeBasePath(config.basePath)
+  return config
 }
 
 /** Load and validate blog.json from the given directory */
