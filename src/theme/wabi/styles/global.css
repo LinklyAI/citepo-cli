@@ -4,6 +4,7 @@
 
 /* Source paths for Tailwind v4 class scanning */
 @source "../components";
+@source "../pages";
 @source "../../../ui";
 @source "../../../mdx-components";
 @source "../../../astro-project/src";

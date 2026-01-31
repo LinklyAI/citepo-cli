@@ -183,6 +183,14 @@ describe('generateSkillMd', () => {
     expect(result).toContain('languages: ["en", "zh"]')
   })
 
+  it('should allow overriding the language field', () => {
+    const config = makeConfig({ defaultLanguage: 'zh', languages: ['zh', 'en'] })
+    const posts = [makePost({ lang: 'en' })]
+    const result = generateSkillMd(config, posts, { language: 'en' })
+
+    expect(result).toContain('language: "en"')
+  })
+
   it('should handle empty posts', () => {
     const config = makeConfig()
     const result = generateSkillMd(config, [])

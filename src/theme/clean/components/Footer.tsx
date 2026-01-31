@@ -1,3 +1,7 @@
+import { RssIcon } from "lucide-react"
+import ResourceLink from './ResourceLink'
+import { Button } from "@ui/button"
+
 interface SocialLinks {
   twitter?: string
   github?: string
@@ -8,37 +12,47 @@ interface SocialLinks {
 interface FooterProps {
   blogName: string
   social?: SocialLinks
-  basePath?: string
-  llmsText?: boolean
-  skillMd?: boolean
+  resourceLinks?: {
+    rss?: string
+    llms?: string
+    llmsFull?: string
+    skill?: string
+  }
 }
 
 /** Clean footer — minimal copyright + powered by + conditional links */
-export default function Footer({ blogName, social, basePath = '/', llmsText, skillMd }: FooterProps) {
+export default function Footer({
+  blogName,
+  social,
+  resourceLinks,
+}: FooterProps) {
   const currentYear = new Date().getFullYear()
   const hasSocial = social && Object.values(social).some(Boolean)
-  const base = basePath === '/' ? '' : basePath
+  const hasAiLinks = Boolean(
+    resourceLinks?.llms || resourceLinks?.llmsFull || resourceLinks?.skill,
+  )
 
   return (
-    <footer className="py-10 mt-auto">
-      <div className="max-w-5xl mx-auto px-6 flex items-center gap-3 text-sm text-muted-foreground">
+    <footer className="py-6 mt-auto border-t max-w-3xl mx-auto w-full">
+      <div className="flex items-center gap-3 text-sm text-muted-foreground ">
         <div className="flex items-center gap-1.5 flex-wrap justify-center">
           <span>&copy; {currentYear} {blogName}</span>
-          {llmsText && (
+          {hasAiLinks && (
             <>
               <span className="text-border">&middot;</span>
-              <a href={`${base}/llms-full.txt`} className="hover:text-foreground transition-colors">
-                llms-full.txt
-              </a>
+              <ResourceLink links={resourceLinks} />
             </>
           )}
-          {skillMd && (
-            <>
-              <span className="text-border">&middot;</span>
-              <a href={`${base}/skill.md`} className="hover:text-foreground transition-colors">
-                skill.md
+          {resourceLinks?.rss && (
+            <Button variant="secondary" size="sm" asChild>
+              <a
+                href={resourceLinks.rss}
+                className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+              >
+                <RssIcon className="size-4" />
+                RSS
               </a>
-            </>
+            </Button>
           )}
         </div>
 
@@ -66,7 +80,7 @@ export default function Footer({ blogName, social, basePath = '/', llmsText, ski
             )}
           </div>
         )}
-        <div className="ml-auto">
+        <div className="ml-auto text-xs">
           <a
             href="https://citepo.com"
             target="_blank"

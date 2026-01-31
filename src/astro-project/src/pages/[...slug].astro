@@ -2,7 +2,17 @@
 import { getCollection, render } from 'astro:content'
 import PostLayout from '../layouts/PostLayout.astro'
 import blogConfig from 'virtual:blog-config'
-import * as mdxComponents from '@mdx'
+import {
+  Accordion,
+  AccordionGroup,
+  Badge,
+  Callout,
+  Card,
+  CardGroup,
+  CodeGroup,
+  Step,
+  Steps,
+} from '@mdx'
 import { isMultiLang, filterPostsByLang, getPostSlug, getPostUrl, getTranslations } from '../lib/i18n.ts'
 
 export async function getStaticPaths() {
@@ -29,6 +39,17 @@ const lang = blogConfig.defaultLanguage
 const allPosts = await getCollection('blog', ({ data }) => !data.draft)
 const langPosts = isMultiLang(blogConfig) ? filterPostsByLang(allPosts, lang, blogConfig) : allPosts
 const { Content, headings } = await render(post)
+const mdxComponents = {
+  Accordion,
+  AccordionGroup,
+  Badge,
+  Callout,
+  Card,
+  CardGroup,
+  CodeGroup,
+  Step,
+  Steps,
+}
 const translations = isMultiLang(blogConfig)
   ? getTranslations(post.id, allPosts, blogConfig)
   : {}
@@ -38,8 +59,8 @@ const sortedPosts = langPosts.sort(
   (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
 )
 const currentIndex = sortedPosts.findIndex((p) => p.id === post.id)
-const prevPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : undefined
-const nextPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : undefined
+const prevPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : undefined
+const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : undefined
 ---
 
 <PostLayout

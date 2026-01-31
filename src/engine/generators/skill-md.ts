@@ -5,10 +5,15 @@ import type { PostData } from '../content.js'
  * Generate skill.md content — a structured overview for AI agents.
  * Includes YAML frontmatter, blog metadata, post list, and tag statistics.
  */
-export function generateSkillMd(config: BlogConfig, posts: PostData[]): string {
+export function generateSkillMd(
+  config: BlogConfig,
+  posts: PostData[],
+  options?: { language?: string },
+): string {
   const lines: string[] = []
 
   const isMultiLang = (config.languages?.length ?? 0) > 1
+  const language = options?.language ?? config.defaultLanguage
 
   // YAML frontmatter
   lines.push('---')
@@ -16,7 +21,7 @@ export function generateSkillMd(config: BlogConfig, posts: PostData[]): string {
   lines.push(`description: "${config.description}"`)
   lines.push(`type: blog`)
   lines.push(`theme: "${config.theme}"`)
-  lines.push(`language: "${config.defaultLanguage}"`)
+  lines.push(`language: "${language}"`)
   if (isMultiLang && config.languages) {
     lines.push(`languages: [${config.languages.map((l) => `"${l}"`).join(', ')}]`)
   }

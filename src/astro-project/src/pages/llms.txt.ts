@@ -1,67 +1,46 @@
 import type { APIRoute } from 'astro'
+import type { CollectionEntry } from 'astro:content'
 import { getCollection } from 'astro:content'
 import blogConfig from 'virtual:blog-config'
-import { isMultiLang, getPostSlug } from '../lib/i18n.ts'
+import { filterPostsByLang, getPostLang, isMultiLang } from '../lib/i18n.ts'
+import { generateLlmsTxt } from '../../../engine/generators/llms-txt.js'
+import type { PostData } from '../../../engine/content.js'
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async (context) => {
   const config = blogConfig
+  if (!config.llmsText) {
+    return new Response(null, { status: 404 })
+  }
+
   const allPosts = await getCollection('blog', ({ data }) => !data.draft)
-  const sorted = allPosts.sort(
-    (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime(),
-  )
+  const defaultLang = config.defaultLanguage || 'en'
+  const langPosts = isMultiLang(config)
+    ? filterPostsByLang(allPosts, defaultLang, config)
+    : allPosts
+  const mappedPosts = mapEntriesToPostData(langPosts, config)
+  const siteUrl = context.site?.toString() || config.siteUrl
+  const content = generateLlmsTxt(config, mappedPosts, siteUrl)
 
-  const multiLang = isMultiLang(config)
-  const lines: string[] = []
-
-  lines.push(`# ${config.name}`)
-  lines.push('')
-  if (config.description) {
-    lines.push(`> ${config.description}`)
-    lines.push('')
-  }
-
-  if (sorted.length > 0) {
-    if (multiLang) {
-      const postsByLang = new Map<string, typeof sorted>()
-      for (const post of sorted) {
-        const slug = getPostSlug(post.id, config)
-        const lang = detectLang(slug, config)
-        const arr = postsByLang.get(lang) ?? []
-        arr.push(post)
-        postsByLang.set(lang, arr)
-      }
-      for (const [lang, posts] of postsByLang) {
-        lines.push(`## Blog Posts (${lang})`)
-        lines.push('')
-        for (const post of posts) {
-          const slug = getPostSlug(post.id, config)
-          const desc = post.data.description ? `: ${post.data.description}` : ''
-          lines.push(`- [${post.data.title}](/${slug})${desc}`)
-        }
-        lines.push('')
-      }
-    } else {
-      lines.push('## Blog Posts')
-      lines.push('')
-      for (const post of sorted) {
-        const slug = getPostSlug(post.id, config)
-        const desc = post.data.description ? `: ${post.data.description}` : ''
-        lines.push(`- [${post.data.title}](/${slug})${desc}`)
-      }
-      lines.push('')
-    }
-  }
-
-  return new Response(lines.join('\n'), {
+  return new Response(content, {
     headers: { 'Content-Type': 'text/plain; charset=utf-8' },
   })
 }
 
-function detectLang(slug: string, config: typeof blogConfig): string {
-  if (config.languages && config.languages.length > 1) {
-    for (const lang of config.languages) {
-      if (slug.startsWith(`${lang}/`)) return lang
-    }
-  }
-  return config.defaultLanguage
+function mapEntriesToPostData(
+  entries: CollectionEntry<'blog'>[],
+  config: typeof blogConfig,
+): PostData[] {
+  return entries
+    .map((post) => ({
+      slug: post.id,
+      title: post.data.title,
+      description: post.data.description ?? '',
+      date: new Date(post.data.date),
+      tags: post.data.tags ?? [],
+      authors: post.data.authors ?? [],
+      draft: false,
+      rawContent: post.body ?? '',
+      lang: getPostLang(post.id, config),
+    }))
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
 }

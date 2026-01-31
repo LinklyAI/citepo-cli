@@ -1,12 +1,16 @@
 ---
 import { getCollection } from 'astro:content'
 import BaseLayout from '../../../layouts/BaseLayout.astro'
-import PostCard from '@theme/components/PostCard.tsx'
-import Pagination from '@theme/components/Pagination.tsx'
-import HeroBanner from '@theme/components/HeroBanner.tsx'
+import HomePage from '@theme/pages/Home'
 import blogConfig from 'virtual:blog-config'
-import { isMultiLang, getNonDefaultLanguages, filterPostsByLang, getPostUrl, getLangHomeUrl, getPaginationBaseUrl, buildAlternateLanguagesForPagination } from '../../../lib/i18n.ts'
+import {
+  buildAlternateLanguagesForPagination,
+  filterPostsByLang,
+  getNonDefaultLanguages,
+  isMultiLang,
+} from '../../../lib/i18n.ts'
 import { paginatePosts, generatePaginationPaths } from '../../../lib/pagination.ts'
+import { buildIndexPageProps, mapPostEntryToSummary } from '../../../lib/theme-props.ts'
 
 export async function getStaticPaths() {
   if (!isMultiLang(blogConfig)) return []
@@ -38,51 +42,22 @@ const sortedPosts = langPosts.sort(
 )
 
 const { items, totalPages, currentPage } = paginatePosts(sortedPosts, page, blogConfig.postsPerPage)
-const homeUrl = getLangHomeUrl(lang, blogConfig)
-const paginationBase = getPaginationBaseUrl(lang, blogConfig)
-const alternateLanguages = isMultiLang(blogConfig)
+const translations = isMultiLang(blogConfig)
   ? buildAlternateLanguagesForPagination(page, allPosts, blogConfig, blogConfig.postsPerPage)
   : {}
+const pageProps = buildIndexPageProps({
+  config: blogConfig,
+  lang,
+  translations,
+  posts: items.map((post) => mapPostEntryToSummary(post, blogConfig)),
+  pagination: { currentPage, totalPages },
+})
 ---
 
 <BaseLayout
   lang={lang}
   title={`Page ${currentPage} - ${blogConfig.name}`}
-  alternateLanguages={alternateLanguages}
+  alternateLanguages={translations}
 >
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <HeroBanner image={blogConfig.hero?.image} alt={blogConfig.name} />
-
-    <div class="text-center mb-12">
-      <h1 class="page-title mb-3">
-        {blogConfig.name}
-      </h1>
-      {blogConfig.description && (
-        <p class="page-description">
-          {blogConfig.description}
-        </p>
-      )}
-    </div>
-
-    <div class="flex flex-col gap-2">
-      {items.map((post) => (
-        <PostCard
-          title={post.data.title}
-          description={post.data.description}
-          date={post.data.date.toISOString()}
-          tags={post.data.tags}
-          slug={post.id}
-          coverImage={post.data.coverImage || undefined}
-          url={getPostUrl(post.id, blogConfig)}
-        />
-      ))}
-    </div>
-
-    <Pagination
-      currentPage={currentPage}
-      totalPages={totalPages}
-      homeUrl={homeUrl}
-      paginationBase={paginationBase}
-    />
-  </div>
+  <HomePage client:load {...pageProps} />
 </BaseLayout>

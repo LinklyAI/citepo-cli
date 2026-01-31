@@ -16,7 +16,7 @@ const CALLOUT_CONFIG: Record<
   info: {
     icon: Info,
     title: 'Info',
-    className: 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800',
+    className: 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800 ',
   },
   warning: {
     icon: AlertTriangle,
@@ -26,7 +26,7 @@ const CALLOUT_CONFIG: Record<
   error: {
     icon: XCircle,
     title: 'Error',
-    className: 'bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800',
+    className: 'bg-destructive/10 border-destructive/20',
   },
   tip: {
     icon: Lightbulb,
@@ -41,7 +41,7 @@ export function Callout({ type = 'info', title, children }: CalloutProps) {
   const Icon = config.icon
 
   return (
-    <Alert className={cn('not-prose my-6', config.className)}>
+    <Alert className={cn('not-prose my-6 px-2.5 py-2 has-[>svg]:gap-x-2', config.className)}>
       <Icon />
       <AlertTitle>{title ?? config.title}</AlertTitle>
       <AlertDescription>{children}</AlertDescription>

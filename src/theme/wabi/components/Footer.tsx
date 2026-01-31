@@ -1,3 +1,6 @@
+import { Button } from '@ui/button'
+import ResourceLink from './ResourceLink'
+
 interface SocialLinks {
   twitter?: string
   github?: string
@@ -8,38 +11,46 @@ interface SocialLinks {
 interface FooterProps {
   blogName: string
   social?: SocialLinks
-  basePath?: string
-  llmsText?: boolean
-  skillMd?: boolean
+  resourceLinks?: {
+    rss?: string
+    llms?: string
+    llmsFull?: string
+    skill?: string
+  }
 }
 
 /** Wabi footer — warm border-t with social links and conditional resource links */
-export default function Footer({ blogName, social, basePath = '/', llmsText, skillMd }: FooterProps) {
+export default function Footer({
+  blogName,
+  social,
+  resourceLinks,
+}: FooterProps) {
   const currentYear = new Date().getFullYear()
   const hasSocial = social && Object.values(social).some(Boolean)
-  const base = basePath === '/' ? '' : basePath
+  const hasAiLinks = Boolean(
+    resourceLinks?.llms || resourceLinks?.llmsFull || resourceLinks?.skill,
+  )
 
   return (
     <footer className="border-t border-border bg-muted/30 py-8 mt-auto">
       <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
         <div className="flex items-center gap-1.5 flex-wrap justify-center">
           <span>&copy; {currentYear} {blogName}</span>
-          <span className="text-border">&middot;</span>
-          {llmsText && (
+          {hasAiLinks && (
             <>
               <span className="text-border">&middot;</span>
-              <a href={`${base}/llms-full.txt`} className="hover:text-foreground transition-colors">
-                llms-full.txt
-              </a>
+              <ResourceLink links={resourceLinks} />
             </>
           )}
-          {skillMd && (
-            <>
-              <span className="text-border">&middot;</span>
-              <a href={`${base}/skill.md`} className="hover:text-foreground transition-colors">
-                skill.md
+          {resourceLinks?.rss && (
+            <Button variant="outline" size="sm" asChild>
+              <a
+                href={resourceLinks.rss}
+              >
+                <RssIcon />
+                RSS
               </a>
-            </>
+            </Button>
           )}
         </div>
 
@@ -114,6 +125,26 @@ function EmailIcon() {
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect width="20" height="16" x="2" y="4" rx="2" />
       <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  )
+}
+
+function RssIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 4a16 16 0 0 1 16 16" />
+      <path d="M4 11a9 9 0 0 1 9 9" />
+      <circle cx="5" cy="19" r="1" />
     </svg>
   )
 }

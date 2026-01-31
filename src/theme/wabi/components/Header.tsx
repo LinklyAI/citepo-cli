@@ -43,7 +43,7 @@ export default function Header({
   const showLangSwitcher = currentLang && languages && languages.length > 1
 
   return (
-    <header className="border-b border-border">
+    <header className="border-b border-border bg-background/80">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
         <a
           href={homeHref}

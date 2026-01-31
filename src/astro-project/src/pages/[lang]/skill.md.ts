@@ -2,23 +2,25 @@ import type { APIRoute } from 'astro'
 import type { CollectionEntry } from 'astro:content'
 import { getCollection } from 'astro:content'
 import blogConfig from 'virtual:blog-config'
-import { filterPostsByLang, getPostLang, isMultiLang } from '../lib/i18n.ts'
-import { generateSkillMd } from '../../../engine/generators/skill-md.js'
-import type { PostData } from '../../../engine/content.js'
+import { filterPostsByLang, getPostLang, isMultiLang } from '../../lib/i18n.ts'
+import { generateSkillMd } from '../../../../engine/generators/skill-md.js'
+import type { PostData } from '../../../../engine/content.js'
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async (context) => {
   const config = blogConfig
   if (!config.skillMd) {
     return new Response(null, { status: 404 })
   }
 
+  const lang = context.params.lang
+  if (!lang || !isMultiLang(config) || !config.languages?.includes(lang)) {
+    return new Response(null, { status: 404 })
+  }
+
   const allPosts = await getCollection('blog', ({ data }) => !data.draft)
-  const defaultLang = config.defaultLanguage || 'en'
-  const langPosts = isMultiLang(config)
-    ? filterPostsByLang(allPosts, defaultLang, config)
-    : allPosts
+  const langPosts = filterPostsByLang(allPosts, lang, config)
   const mappedPosts = mapEntriesToPostData(langPosts, config)
-  const content = generateSkillMd(config, mappedPosts, { language: defaultLang })
+  const content = generateSkillMd(config, mappedPosts, { language: lang })
 
   return new Response(content, {
     headers: { 'Content-Type': 'text/markdown; charset=utf-8' },

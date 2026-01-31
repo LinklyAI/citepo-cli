@@ -1,9 +1,16 @@
 ---
 import { getCollection } from 'astro:content'
 import BaseLayout from '../../../layouts/BaseLayout.astro'
-import PostCard from '@theme/components/PostCard.tsx'
+import ListPage from '@theme/pages/List'
 import blogConfig from 'virtual:blog-config'
-import { isMultiLang, getNonDefaultLanguages, filterPostsByLang, getPostUrl, getLangHomeUrl, buildAlternateLanguagesForTag } from '../../../lib/i18n.ts'
+import {
+  buildAlternateLanguagesForTag,
+  filterPostsByLang,
+  getLangHomeUrl,
+  getNonDefaultLanguages,
+  isMultiLang,
+} from '../../../lib/i18n.ts'
+import { buildListPageProps, mapPostEntryToSummary } from '../../../lib/theme-props.ts'
 
 export async function getStaticPaths() {
   if (!isMultiLang(blogConfig)) return []
@@ -41,48 +48,28 @@ export async function getStaticPaths() {
 const { lang, tag, posts } = Astro.props
 const allPosts = await getCollection('blog', ({ data }) => !data.draft)
 const homeUrl = getLangHomeUrl(lang, blogConfig)
-const alternateLanguages = isMultiLang(blogConfig)
+const translations = isMultiLang(blogConfig)
   ? buildAlternateLanguagesForTag(tag, allPosts, blogConfig)
   : {}
+const pageProps = buildListPageProps({
+  config: blogConfig,
+  lang,
+  translations,
+  title: `#${tag}`,
+  description: `${posts.length} ${posts.length === 1 ? 'post' : 'posts'}`,
+  items: posts.map((post) => mapPostEntryToSummary(post, blogConfig)),
+  backLink: {
+    href: homeUrl,
+    label: 'All posts',
+  },
+})
 ---
 
 <BaseLayout
   lang={lang}
   title={`#${tag}`}
   description={`Posts tagged with "${tag}"`}
-  alternateLanguages={alternateLanguages}
+  alternateLanguages={translations}
 >
-  <div class="max-w-3xl mx-auto px-4 py-12">
-    <div class="mb-10">
-      <a
-        href={homeUrl}
-        class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
-        </svg>
-        All posts
-      </a>
-      <h1 class="page-title">
-        #{tag}
-      </h1>
-      <p class="page-description mt-2">
-        {posts.length} {posts.length === 1 ? 'post' : 'posts'}
-      </p>
-    </div>
-
-    <div class="flex flex-col gap-2">
-      {posts.map((post) => (
-        <PostCard
-          title={post.data.title}
-          description={post.data.description}
-          date={post.data.date.toISOString()}
-          tags={post.data.tags}
-          slug={post.id}
-          coverImage={post.data.coverImage || undefined}
-          url={getPostUrl(post.id, blogConfig)}
-        />
-      ))}
-    </div>
-  </div>
+  <ListPage client:load {...pageProps} />
 </BaseLayout>

@@ -1,3 +1,5 @@
+import { ArrowLeft, ArrowRight } from "lucide-react"
+
 interface PostLink {
   title: string
   url: string
@@ -17,12 +19,10 @@ export default function PostNavigation({ prev, next }: PostNavigationProps) {
       {prev ? (
         <a
           href={prev.url}
-          className="group flex flex-col gap-1 p-3 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors"
+          className="group flex flex-col gap-1 p-3 rounded-lg bg-muted/60 hover:bg-muted transition-colors"
         >
           <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
-            </svg>
+            <ArrowLeft className="size-3" />
             Previous
           </span>
           <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
@@ -36,13 +36,11 @@ export default function PostNavigation({ prev, next }: PostNavigationProps) {
       {next ? (
         <a
           href={next.url}
-          className="group flex flex-col gap-1 p-3 rounded-lg border border-border hover:border-primary/30 hover:bg-muted/30 transition-colors text-right"
+          className="group flex flex-col gap-1 p-3 rounded-lg bg-muted/60 hover:bg-muted transition-colors text-right"
         >
           <span className="text-xs text-muted-foreground flex items-center justify-end gap-1">
             Next
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-            </svg>
+            <ArrowRight className="size-3" />
           </span>
           <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
             {next.title}

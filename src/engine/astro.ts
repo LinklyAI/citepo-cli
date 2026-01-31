@@ -130,6 +130,9 @@ export function createAstroConfig(
     base: blogConfig.basePath,
     site: options?.siteUrl,
     configFile: false,
+    prefetch: {
+      prefetchAll: true,
+    },
     server: {
       port: options?.port ?? 4321,
     },

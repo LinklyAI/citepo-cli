@@ -1,6 +1,6 @@
-"use client"
+ 'use client'
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@ui/select'
 
 interface LanguageSwitcherProps {
   currentLang: string
@@ -28,21 +28,20 @@ export default function LanguageSwitcher({
   return (
     <div className="flex items-center gap-1 text-sm">
       <Select
-
         value={currentLang}
         onValueChange={(lang) => {
           if (lang === currentLang) return
           const url = translations[lang]
           if (!url) return
-          if (typeof window !== "undefined") {
+          if (typeof window !== 'undefined') {
             window.location.href = url
           }
         }}
       >
         <SelectTrigger size="sm" className="min-w-[4em]">
-            <SelectValue>{currentLabel}</SelectValue>
+          <SelectValue>{currentLabel}</SelectValue>
         </SelectTrigger>
-        <SelectContent  position="popper" align="start">
+        <SelectContent position="popper" align="start">
           {languages.map((lang) => {
             const label = LANG_LABELS[lang] ?? lang.toUpperCase()
             const url = translations[lang]

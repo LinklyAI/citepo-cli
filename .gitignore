@@ -4,5 +4,5 @@ dist/
 *.tgz
 .DS_Store
 coverage/
-my-blog/
+my-blog*
 dist-runtime/*
