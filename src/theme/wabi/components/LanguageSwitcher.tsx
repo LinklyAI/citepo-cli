@@ -1,3 +1,7 @@
+"use client"
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui/select"
+
 interface LanguageSwitcherProps {
   currentLang: string
   languages: string[]
@@ -19,31 +23,40 @@ export default function LanguageSwitcher({
 }: LanguageSwitcherProps) {
   if (languages.length <= 1) return null
 
+  const currentLabel = LANG_LABELS[currentLang] ?? currentLang.toUpperCase()
+
   return (
     <div className="flex items-center gap-1 text-sm">
-      {languages.map((lang, i) => {
-        const label = LANG_LABELS[lang] ?? lang.toUpperCase()
-        const isCurrent = lang === currentLang
-        const url = translations[lang]
+      <Select
 
-        return (
-          <span key={lang} className="flex items-center">
-            {i > 0 && <span className="text-border mx-1">/</span>}
-            {isCurrent ? (
-              <span className="font-medium text-foreground">{label}</span>
-            ) : url ? (
-              <a
-                href={url}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
+        value={currentLang}
+        onValueChange={(lang) => {
+          if (lang === currentLang) return
+          const url = translations[lang]
+          if (!url) return
+          if (typeof window !== "undefined") {
+            window.location.href = url
+          }
+        }}
+      >
+        <SelectTrigger size="sm" className="min-w-[4em]">
+            <SelectValue>{currentLabel}</SelectValue>
+        </SelectTrigger>
+        <SelectContent  position="popper" align="start">
+          {languages.map((lang) => {
+            const label = LANG_LABELS[lang] ?? lang.toUpperCase()
+            const url = translations[lang]
+            const isCurrent = lang === currentLang
+            const isDisabled = !url && !isCurrent
+
+            return (
+              <SelectItem key={lang} value={lang} disabled={isDisabled}>
                 {label}
-              </a>
-            ) : (
-              <span className="text-muted-foreground/50 cursor-not-allowed">{label}</span>
-            )}
-          </span>
-        )
-      })}
+              </SelectItem>
+            )
+          })}
+        </SelectContent>
+      </Select>
     </div>
   )
 }

@@ -217,7 +217,6 @@
 @layer base {
   html {
     scroll-behavior: smooth;
-    scrollbar-gutter: stable;
   }
 
   * {
@@ -227,6 +226,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
+    scrollbar-gutter: stable;
   }
 
   ::-webkit-scrollbar {

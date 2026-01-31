@@ -78,8 +78,18 @@ const contextualOptions = blogConfig.contextual?.options
           href={homeUrl}
           class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path>
           </svg>
           Back to blog
         </a>
@@ -91,44 +101,52 @@ const contextualOptions = blogConfig.contextual?.options
           </h1>
           <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <time datetime={date.toISOString()}>{formattedDate}</time>
-            {authors.length > 0 && (
-              <>
-                <span class="text-border">&middot;</span>
-                <span>{authors.join(', ')}</span>
-              </>
-            )}
-            {tags.length > 0 && (
-              <>
-                <span class="text-border">&middot;</span>
-                <div class="flex gap-1.5 flex-wrap">
-                  {tags.map((tag) => (
-                    <a
-                      href={`${tagsBaseUrl}/${tag}`}
-                      class="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {tag}
-                    </a>
-                  ))}
-                </div>
-              </>
-            )}
+            {
+              authors.length > 0 && (
+                <>
+                  <span class="text-border">&middot;</span>
+                  <span>{authors.join(', ')}</span>
+                </>
+              )
+            }
+            {
+              tags.length > 0 && (
+                <>
+                  <span class="text-border">&middot;</span>
+                  <div class="flex gap-1.5 flex-wrap">
+                    {tags.map((tag) => (
+                      <a
+                        href={`${tagsBaseUrl}/${tag}`}
+                        class="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {tag}
+                      </a>
+                    ))}
+                  </div>
+                </>
+              )
+            }
           </div>
 
-          {contextualOptions && contextualOptions.length > 0 && (
-            <div class="mt-4">
-              <ContextualMenu client:load options={contextualOptions} />
-            </div>
-          )}
+          {
+            contextualOptions && contextualOptions.length > 0 && (
+              <div class="mt-4">
+                <ContextualMenu client:load options={contextualOptions} />
+              </div>
+            )
+          }
         </header>
 
         {/* Cover image */}
-        {coverImage && (
-          <img
-            src={coverImage}
-            alt={title}
-            class="w-full rounded-lg mb-10 border border-border"
-          />
-        )}
+        {
+          coverImage && (
+            <img
+              src={coverImage}
+              alt={title}
+              class="w-full rounded-lg mb-10 border border-border"
+            />
+          )
+        }
 
         {/* Post content */}
         <article class="prose prose-neutral dark:prose-invert max-w-none">
@@ -140,9 +158,7 @@ const contextualOptions = blogConfig.contextual?.options
       </div>
 
       {/* TOC sidebar */}
-      {hasHeadings && (
-        <TableOfContents client:load headings={headings} />
-      )}
+      {hasHeadings && <TableOfContents client:load headings={headings} />}
     </div>
   </div>
 </BaseLayout>
