@@ -3,7 +3,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@ui/tabs'
 import { highlight } from 'sugar-high'
 import { Button } from '@ui/button'
 import { Skeleton } from '@ui/skeleton'
-import { Check, CommandIcon, Copy, Terminal, TerminalSquare } from 'lucide-react'
+import { Check, Copy, Terminal } from 'lucide-react'
 
 interface CodeGroupProps {
   children: ReactNode
