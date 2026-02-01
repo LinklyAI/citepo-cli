@@ -1,8 +1,13 @@
-import { Children, isValidElement, type ReactNode, type ReactElement } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@ui/tabs'
+import { highlight } from 'sugar-high'
+import { Button } from '@ui/button'
+import { Skeleton } from '@ui/skeleton'
+import { Check, CommandIcon, Copy, Terminal, TerminalSquare } from 'lucide-react'
 
 interface CodeGroupProps {
   children: ReactNode
+  labels?: string
 }
 
 /**
@@ -10,39 +15,115 @@ interface CodeGroupProps {
  * Wraps multiple code blocks (```lang) and renders them as tabs.
  * Each child should be a <pre> or a wrapper containing <pre>.
  */
-export function CodeGroup({ children }: CodeGroupProps) {
-  const tabs: { label: string; element: ReactElement }[] = []
-  let counter = 0
+export function CodeGroup({ children, labels }: CodeGroupProps) {
+  const fallbackRef = useRef<HTMLDivElement | null>(null)
+  const [tabs, setTabs] = useState<
+    Array<{ label: string; language: string; code: string; html: string }> | null
+  >(null)
+  const [activeTab, setActiveTab] = useState('tab-0')
+  const [copied, setCopied] = useState(false)
+  const labelOverrides = useMemo(() => {
+    if (!labels) return []
+    return labels
+      .split('|')
+      .map((label) => label.trim())
+      .filter(Boolean)
+  }, [labels])
 
-  Children.forEach(children, (child) => {
-    if (!isValidElement(child)) return
-    const label = extractLabel(child, ++counter)
-    tabs.push({ label, element: child })
-  })
+  useEffect(() => {
+    const root = fallbackRef.current
+    if (!root) return
 
-  if (tabs.length === 0) return null
-  if (tabs.length === 1) return <>{tabs[0]!.element}</>
+    const preNodes = Array.from(root.querySelectorAll<HTMLPreElement>('pre'))
+    if (preNodes.length <= 1) return
+
+    const parsed = preNodes.map((pre, index) => {
+      const info = extractInfoFromPre(pre, index + 1)
+      const language = normalizeLanguage(info.language)
+      const label = labelOverrides[index] || info.label
+      const codeText = pre.textContent ?? ''
+      const highlighted = highlight(codeText)
+      const html = `<pre data-language="${language}"><code class="language-${language}">${highlighted}</code></pre>`
+      return { label, language, code: codeText, html }
+    })
+
+    setTabs(parsed)
+  }, [])
+
+  const activeIndex = useMemo(() => {
+    const index = Number(activeTab.replace('tab-', ''))
+    return Number.isNaN(index) ? 0 : index
+  }, [activeTab])
+
+  const handleCopy = useCallback(async () => {
+    if (!tabs?.length) return
+    const code = tabs[activeIndex]?.code ?? ''
+    try {
+      await navigator.clipboard.writeText(code.trim())
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1600)
+    } catch {
+      setCopied(false)
+    }
+  }, [activeIndex, tabs])
+
+  if (!tabs) {
+    return (
+      <div className="not-prose my-6">
+        <div ref={fallbackRef} hidden aria-hidden="true">
+          {children}
+        </div>
+        <div className="rounded-lg bg-muted/40 p-2">
+          <div className="flex items-center justify-between gap-2 px-1 py-1">
+            <div className="flex items-center gap-1">
+              <Skeleton className="h-7 w-14 rounded-md" />
+              <Skeleton className="h-7 w-14 rounded-md" />
+            </div>
+            <Skeleton className="h-7 w-7 rounded-md" />
+          </div>
+          <Skeleton className="mt-2 h-12 w-full rounded-md" />
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <Tabs defaultValue="tab-0" className="not-prose my-6 rounded-lg border border-border overflow-hidden">
-      <TabsList variant="line" className="w-full justify-start rounded-none border-b border-border bg-muted/50 px-0">
-        {tabs.map((tab, i) => (
-          <TabsTrigger
-            key={i}
-            value={`tab-${i}`}
-            className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-primary data-[state=active]:bg-background data-[state=active]:shadow-none"
-          >
-            {tab.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+    <Tabs
+      value={activeTab}
+      onValueChange={setActiveTab}
+      className="not-prose my-6 rounded-lg overflow-hidden gap-0 bg-muted/50 font-mono text-sm"
+    >
+      <div className="flex items-center justify-start gap-2 px-2 py-1">
+        <Terminal className='size-4' />
+        <TabsList variant="default" className="not-prose my-0.5">
+          {tabs.map((tab, i) => (
+            <TabsTrigger
+              key={i}
+              value={`tab-${i}`}
+              className=''
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Copy code"
+          onClick={handleCopy}
+          className="text-muted-foreground hover:text-foreground ml-auto"
+        >
+          {copied ? <Check /> : <Copy />}
+        </Button>
+      </div>
       {tabs.map((tab, i) => (
         <TabsContent
           key={i}
           value={`tab-${i}`}
-          className="mt-0 [&>pre]:rounded-none [&>pre]:border-0 [&>pre]:my-0"
+          className="not-prose border-t border-border/40 [&_pre]:bg-muted/50! [&_pre]:p-4! [&_pre]:overflow-x-auto"
         >
-          {tab.element}
+          <div dangerouslySetInnerHTML={{ __html: tab.html }} />
         </TabsContent>
       ))}
     </Tabs>
@@ -50,26 +131,53 @@ export function CodeGroup({ children }: CodeGroupProps) {
 }
 
 /** Extract a display label from a code block element */
-function extractLabel(element: ReactElement, fallbackIndex: number): string {
-  const props = element.props as Record<string, unknown>
+function extractLabelFromPre(element: HTMLPreElement, fallbackIndex: number): string {
+  const dataLanguage = element.dataset.language?.trim()
+  if (dataLanguage) return dataLanguage
 
-  // Check for data-language attribute (common in code highlighting)
-  if (typeof props['data-language'] === 'string') return props['data-language']
-
-  // Check className for language-xxx
-  if (typeof props.className === 'string') {
-    const match = props.className.match(/language-(\w+)/)
+  if (element.className) {
+    const match = element.className.match(/language-(\w+)/)
     if (match?.[1]) return match[1]
   }
 
-  // Check children for pre > code with className
-  if (isValidElement(props.children)) {
-    const childProps = (props.children as ReactElement).props as Record<string, unknown>
-    if (typeof childProps.className === 'string') {
-      const match = childProps.className.match(/language-(\w+)/)
-      if (match?.[1]) return match[1]
-    }
+  const code = element.querySelector('code')
+  if (code?.className) {
+    const match = code.className.match(/language-(\w+)/)
+    if (match?.[1]) return match[1]
   }
 
   return `Tab ${fallbackIndex}`
+}
+
+function normalizeLanguage(label: string) {
+  const normalized = label.toLowerCase().replace(/[^a-z0-9-]/g, '')
+  return normalized || 'text'
+}
+
+function extractInfoFromPre(element: HTMLPreElement, fallbackIndex: number) {
+  const code = element.querySelector('code')
+  const rawLanguage =
+    element.dataset.language?.trim() ||
+    element.getAttribute('data-language')?.trim() ||
+    element.getAttribute('data-lang')?.trim()
+
+  const languageFromClass = extractLabelFromPre(element, fallbackIndex)
+  const languageTokens = rawLanguage?.split(/\s+/).filter(Boolean) ?? []
+  const language = languageTokens[0] ?? languageFromClass
+
+  const meta =
+    code?.dataset.meta ||
+    code?.getAttribute('data-meta') ||
+    element.dataset.meta ||
+    element.getAttribute('data-meta') ||
+    element.getAttribute('data-title') ||
+    element.getAttribute('data-label') ||
+    element.getAttribute('data-name') ||
+    element.getAttribute('title')
+
+  const metaLabel = meta?.trim().split(/\s+/)[0]
+  const infoLabel = languageTokens.length > 1 ? languageTokens[1] : undefined
+  const label = metaLabel || infoLabel || language || `Tab ${fallbackIndex}`
+
+  return { language, label }
 }

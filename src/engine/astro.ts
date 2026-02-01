@@ -5,9 +5,15 @@ import type { AstroInlineConfig } from 'astro'
 import type { Plugin } from 'vite'
 import type { BlogConfig } from './config.js'
 import { getPackageRoot } from '../cli/utils.js'
+import { createMdxClientDirectivePlugin } from './mdx-client-directive.js'
+import { createMdxCodeMetaPlugin } from './mdx-code-meta.js'
+import { createMdxCodeGroupLabelsPlugin } from './mdx-code-group-labels.js'
+import { createRehypeCodeMetaPlugin } from './rehype-code-meta.js'
+import { createShikiMetaTransformer } from './shiki-code-meta.js'
 
 const VIRTUAL_MODULE_ID = 'virtual:blog-config'
 const RESOLVED_VIRTUAL_MODULE_ID = '\0' + VIRTUAL_MODULE_ID
+const MDX_CLIENT_COMPONENTS = ['AccordionGroup', 'CodeGroup']
 
 /**
  * Vite virtual module plugin: injects BlogConfig as `virtual:blog-config`.
@@ -52,6 +58,7 @@ function userStylePlugin(userDir: string): Plugin {
     },
   }
 }
+
 
 /**
  * Temporarily switch process.cwd() to citepo's package root so that
@@ -181,8 +188,22 @@ export async function createFullAstroConfig(
 ): Promise<AstroInlineConfig> {
   const config = createAstroConfig(blogConfig, userDir, options)
   const { mdx, react, sitemap, tailwindVite } = await loadIntegrations()
-
-  config.integrations = [mdx(), react(), ...(blogConfig.sitemap ? [sitemap()] : [])]
+  const mdxClientDirectivePlugin = createMdxClientDirectivePlugin(MDX_CLIENT_COMPONENTS)
+  const mdxCodeMetaPlugin = createMdxCodeMetaPlugin()
+  const mdxCodeGroupLabelsPlugin = createMdxCodeGroupLabelsPlugin()
+  const rehypeCodeMetaPlugin = createRehypeCodeMetaPlugin()
+  const shikiMetaTransformer = createShikiMetaTransformer()
+  config.integrations = [
+    mdx({
+      remarkPlugins: [mdxClientDirectivePlugin, mdxCodeMetaPlugin, mdxCodeGroupLabelsPlugin],
+      rehypePlugins: [rehypeCodeMetaPlugin],
+      shikiConfig: {
+        transformers: [shikiMetaTransformer],
+      },
+    }),
+    react(),
+    ...(blogConfig.sitemap ? [sitemap()] : []),
+  ]
 
   // Prepend Tailwind CSS v4 Vite plugin to the plugins list
   const existingPlugins = (config.vite?.plugins ?? []) as Plugin[]
