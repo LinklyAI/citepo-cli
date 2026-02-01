@@ -11,6 +11,7 @@
     "dist/",
     "src/astro-project/src/",
     "src/astro-project/tsconfig.json",
+    "src/engine/",
     "src/ui/",
     "src/theme/",
     "src/mdx-components/",
