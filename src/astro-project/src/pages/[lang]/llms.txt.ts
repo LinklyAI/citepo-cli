@@ -2,9 +2,17 @@ import type { APIRoute } from 'astro'
 import type { CollectionEntry } from 'astro:content'
 import { getCollection } from 'astro:content'
 import blogConfig from 'virtual:blog-config'
-import { filterPostsByLang, getPostLang, isMultiLang } from '../../lib/i18n.ts'
+import { filterPostsByLang, getPostLang, getNonDefaultLanguages, isMultiLang } from '../../lib/i18n.ts'
 import { generateLlmsTxt } from '../../../../engine/generators/llms-txt.js'
 import type { PostData } from '../../../../engine/content.js'
+
+export function getStaticPaths() {
+  if (!blogConfig.llmsText || !isMultiLang(blogConfig)) return []
+  return getNonDefaultLanguages(blogConfig).map((lang) => ({
+    params: { lang },
+    props: { lang },
+  }))
+}
 
 export const GET: APIRoute = async (context) => {
   const config = blogConfig
