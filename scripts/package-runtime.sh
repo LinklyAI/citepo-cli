@@ -31,6 +31,7 @@ mkdir -p "$STAGE_DIR/citepo-cli/src"
 cp -a dist package.json node_modules "$STAGE_DIR/citepo-cli/"
 
 cp -a src/astro-project \
+  src/engine \
   src/theme \
   src/ui \
   src/mdx-components \
