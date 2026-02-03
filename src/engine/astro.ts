@@ -156,6 +156,13 @@ export function createAstroConfig(
           '@theme': path.resolve(packageRoot, `src/theme/${blogConfig.theme}`),
           '@ui': path.resolve(packageRoot, 'src/ui'),
           '@mdx': path.resolve(packageRoot, 'src/mdx-components'),
+          // User-friendly image path aliases for MDX content
+          // Allows: ![alt](images/xxx.webp) instead of ![alt](/images/xxx.webp)
+          'images': path.resolve(userDir, 'asset/images'),
+          // Support relative paths from content directory to asset/images/
+          '../asset/images': path.resolve(userDir, 'asset/images'),
+          '../../asset/images': path.resolve(userDir, 'asset/images'),
+          '../../../asset/images': path.resolve(userDir, 'asset/images'),
         },
       },
     },
