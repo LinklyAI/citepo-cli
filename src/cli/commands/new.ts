@@ -19,13 +19,20 @@ const BRAND_BANNER = `
 async function renderBrand(): Promise<void> {
   const version = await getVersion()
   console.log(BRAND_BANNER)
-  console.log(`  v${version} — A lightweight blog publishing platform\n`)
+  console.log(`  v${version} — A lightweight CLI for creating, previewing, and building blogs.\n`)
 }
 
 const LANGUAGE_OPTIONS = [
-  { value: 'en', label: 'English', hint: 'Default' },
+  { value: 'en', label: 'English', hint: '' },
   { value: 'zh', label: '中文', hint: 'Chinese' },
+  { value: 'es', label: 'Español', hint: 'Spanish' },
+  { value: 'pt', label: 'Português', hint: 'Portuguese' },
+  { value: 'fr', label: 'Français', hint: 'French' },
+  { value: 'de', label: 'Deutsch', hint: 'German' },
   { value: 'ja', label: '日本語', hint: 'Japanese' },
+  { value: 'ko', label: '한국어', hint: 'Korean' },
+  { value: 'ru', label: 'Русский', hint: 'Russian' },
+  { value: 'ar', label: 'العربية', hint: 'Arabic' },
 ] as const
 
 const THEME_OPTIONS = [
@@ -33,8 +40,30 @@ const THEME_OPTIONS = [
   { value: 'wabi', label: 'Wabi', hint: 'Warm reading theme' },
 ] as const
 
+/**
+ * Convert a string to kebab-case for directory names.
+ * Returns null if the input cannot be converted (e.g., non-ASCII characters only).
+ */
+function toKebabCase(str: string): string | null {
+  // Remove leading/trailing whitespace
+  const trimmed = str.trim()
+  if (!trimmed) return null
+
+  // Convert to lowercase, replace spaces and underscores with hyphens
+  const kebab = trimmed
+    .toLowerCase()
+    .replace(/[\s_]+/g, '-') // Replace spaces and underscores with hyphens
+    .replace(/[^a-z0-9-]/g, '') // Remove non-alphanumeric characters except hyphens
+    .replace(/-+/g, '-') // Collapse multiple hyphens
+    .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+
+  // Return null if result is empty or too short
+  return kebab.length >= 1 ? kebab : null
+}
+
 interface NewCommandOptions {
   name: string
+  directory: string
   description: string
   theme: ThemeNameType
   defaultLanguage: LanguageCodeType
@@ -51,16 +80,16 @@ export const newCommand = new Command('new')
     const options = await collectUserInput(directory)
     if (!options) return
 
-    const targetDir = resolve(process.cwd(), directory ?? options.name)
+    const targetDir = resolve(process.cwd(), options.directory)
     await generateProject(targetDir, options)
 
     p.outro('Your blog is ready!')
 
     console.log('')
     console.log('  Next steps:')
-    console.log(`  1. cd ${directory ?? options.name}`)
-    console.log('  2. npx citepo dev')
-    console.log('  3. Open http://localhost:4321')
+    console.log(`  1. cd ${options.directory}`)
+    console.log('  2. npx citepo dev (or npx ctp dev)')
+    console.log('  3. Open http://localhost:4321 to preview your blog')
     console.log('')
   })
 
@@ -71,16 +100,60 @@ async function collectUserInput(directory?: string): Promise<NewCommandOptions |
       name: () =>
         p.text({
           message: 'What is the name of your blog?',
-          placeholder: directory ?? 'my-blog',
-          defaultValue: directory ?? 'my-blog',
+          placeholder: directory ?? 'My Blog',
+          defaultValue: directory ?? 'My Blog',
           validate(value) {
             if (!value.trim()) return 'Blog name is required'
           },
         }),
+      directory: async ({ results }) => {
+        // If directory was provided via CLI argument, use it directly
+        if (directory) return directory
+
+        const blogName = results.name as string
+        const suggestedDir = toKebabCase(blogName)
+
+        // If we can parse a valid kebab-case name, offer it as an option
+        if (suggestedDir) {
+          const choice = await p.select({
+            message: 'Choose a project directory name (kebab-case recommended)',
+            options: [
+              { value: suggestedDir, label: suggestedDir, hint: 'recommended' },
+              { value: '_custom', label: 'Enter custom name...' },
+            ],
+            initialValue: suggestedDir,
+          })
+
+          if (choice === '_custom') {
+            return p.text({
+              message: 'Enter project directory name (kebab-case)',
+              placeholder: 'my-blog',
+              defaultValue: 'my-blog',
+              validate(value) {
+                if (!value.trim()) return 'Directory name is required'
+                if (!/^[a-z0-9-]+$/.test(value)) return 'Use lowercase letters, numbers, and hyphens only'
+              },
+            })
+          }
+
+          return choice
+        }
+
+        // Cannot parse a valid name, ask user to input manually
+        return p.text({
+          message: 'Enter project directory name (kebab-case)',
+          placeholder: 'my-blog',
+          defaultValue: 'my-blog',
+          validate(value) {
+            if (!value.trim()) return 'Directory name is required'
+            if (!/^[a-z0-9-]+$/.test(value)) return 'Use lowercase letters, numbers, and hyphens only'
+          },
+        })
+      },
       description: () =>
         p.text({
           message: 'Describe your blog in a sentence (optional)',
-          placeholder: 'A personal blog about technology and life',
+          placeholder: 'A blog about technology and life',
           defaultValue: '',
         }),
       theme: () =>
@@ -100,18 +173,30 @@ async function collectUserInput(directory?: string): Promise<NewCommandOptions |
           message: 'Enable multi-language support?',
           initialValue: false,
         }),
-      additionalLanguages: ({ results }) => {
+      additionalLanguages: async ({ results }) => {
         // Skip if multi-lang is not enabled
-        if (!results.enableMultiLang) return Promise.resolve([])
+        if (!results.enableMultiLang) return []
 
         const remaining = LANGUAGE_OPTIONS.filter((l) => l.value !== results.defaultLanguage)
-        if (remaining.length === 0) return Promise.resolve([])
+        if (remaining.length === 0) return []
 
-        return p.multiselect({
+        const selected = await p.multiselect({
           message: 'Select additional languages (Space to select, Enter to confirm)',
-          options: remaining.map((l) => ({ ...l, label: `${l.label} (${l.hint})` })),
+          options: remaining.map((l) => ({
+            ...l,
+            label: l.hint ? `${l.label} (${l.hint})` : l.label,
+          })),
           required: false,
         })
+
+        // Show tip as a confirmation step
+        await p.select({
+          message: 'Need other languages? Create folders manually in content/ directory.',
+          options: [{ value: 'ok', label: 'Got it, continue' }],
+          initialValue: 'ok',
+        })
+
+        return selected
       },
     },
     {
@@ -124,6 +209,7 @@ async function collectUserInput(directory?: string): Promise<NewCommandOptions |
 
   return {
     name: result.name as string,
+    directory: result.directory as string,
     description: (result.description as string) ?? '',
     theme: result.theme as ThemeNameType,
     defaultLanguage: result.defaultLanguage as LanguageCodeType,
@@ -191,15 +277,20 @@ async function generateProject(targetDir: string, options: NewCommandOptions): P
   // Create asset/images/.gitkeep
   await writeFile(join(targetDir, 'asset', 'images', '.gitkeep'), '', 'utf-8')
 
+  // Copy default favicon files
+  await copyFile(join(scaffoldDir, 'asset', 'favicon.ico'), join(targetDir, 'asset', 'favicon.ico'))
+  await copyFile(join(scaffoldDir, 'asset', 'favicon.svg'), join(targetDir, 'asset', 'favicon.svg'))
+
   s.stop('Project created successfully!')
 
-  // Print summary
-  p.log.success(`Blog name: ${options.name}`)
-  p.log.info(`Languages: ${allLanguages.join(', ')}`)
-  if (isMultiLang) {
-    p.log.info(`Multi-language: enabled (default: ${options.defaultLanguage})`)
-  }
-  p.log.info(`Theme: ${options.theme}`)
-  p.log.info(`Directory: ${targetDir}`)
+  // Print summary using p.note for a cleaner look
+  const summaryLines = [
+    `Name:      ${options.name}`,
+    `Project:   ${options.directory}`,
+    `Theme:     ${options.theme}`,
+    `Languages: ${allLanguages.join(', ')}${isMultiLang ? ` (default: ${options.defaultLanguage})` : ''}`,
+    `Directory: ${targetDir}`,
+  ]
+  p.note(summaryLines.join('\n'), 'Summary')
 }
 

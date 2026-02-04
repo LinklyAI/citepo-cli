@@ -43,7 +43,7 @@ describe('validateBlogConfig', () => {
   })
 
   it('should reject invalid defaultLanguage', () => {
-    expect(() => validateBlogConfig({ name: 'test', defaultLanguage: 'fr' })).toThrow(ZodError)
+    expect(() => validateBlogConfig({ name: 'test', defaultLanguage: 'xx' })).toThrow(ZodError)
   })
 
   it('should reject postsPerPage = 0', () => {
