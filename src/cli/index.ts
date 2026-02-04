@@ -11,7 +11,7 @@ const version = await getVersion()
 
 program
   .name('citepo')
-  .description('A lightweight blog publishing CLI powered by Astro')
+  .description('A lightweight CLI for creating, previewing, and building blogs')
   .version(version, '-v, --version')
 
 // Register commands

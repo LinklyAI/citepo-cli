@@ -1,7 +1,7 @@
 {
   "name": "citepo",
   "version": "0.1.9",
-  "description": "A lightweight blog publishing CLI powered by Astro",
+  "description": "A lightweight CLI for creating, previewing, and building blogs",
   "type": "module",
   "bin": {
     "citepo": "dist/cli/index.js",
