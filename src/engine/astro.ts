@@ -141,6 +141,9 @@ export function createAstroConfig(
     prefetch: {
       prefetchAll: true,
     },
+    devToolbar: {
+      enabled: false,
+    },
     server: {
       port: options?.port ?? 4321,
     },
@@ -168,9 +171,10 @@ export function createAstroConfig(
       },
       server: {
         fs: {
-          // Allow accessing files from user project and its parent directory
-          // This enables relative paths like ../shared/image.png
+          // Allow accessing files from user project, its parent directory,
+          // and disable strict mode to allow Astro dev-toolbar from global installs
           allow: [packageRoot, userDir, path.dirname(userDir)],
+          strict: false,
         },
       },
     },
