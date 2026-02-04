@@ -228,6 +228,7 @@
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
     scrollbar-gutter: stable;
+    overflow: auto;
   }
 
   ::-webkit-scrollbar {

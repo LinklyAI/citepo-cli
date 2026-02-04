@@ -190,8 +190,8 @@
   --shadow-2xl: var(--shadow-2xl);
 
   /* Font stacks */
-  --font-sans: 'Inter', 'Noto Sans SC', 'Noto Sans JP', ui-sans-serif, system-ui,
-    -apple-system, sans-serif;
+  --font-sans:
+    'Inter', 'Noto Sans SC', 'Noto Sans JP', ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-serif: 'Noto Serif', 'Noto Serif SC', 'Noto Serif JP', ui-serif, Georgia, serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
@@ -200,7 +200,6 @@
   html {
     min-width: 360px;
     scroll-behavior: smooth;
-    scrollbar-gutter: stable;
   }
 
   * {
@@ -210,9 +209,10 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
+    scrollbar-gutter: stable;
+    overflow: auto;
   }
 }
-
 
 /* Mac-style scrollbar */
 * {
