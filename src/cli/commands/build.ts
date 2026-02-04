@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { readdir, stat } from 'node:fs/promises'
+import { mkdir, readdir, stat } from 'node:fs/promises'
 import { Command } from 'commander'
 import { loadBlogConfig, normalizeBasePath } from '../../engine/config.js'
 import { clearAstroCache, createFullAstroConfig, withPackageCwd } from '../../engine/astro.js'
@@ -54,6 +54,10 @@ export const buildCommand = new Command('build')
       console.error('  Build aborted: security errors found in MDX content.\n')
       process.exit(1)
     }
+
+    // Ensure _content-images directory exists for relative image paths
+    const contentImagesDir = path.resolve(userDir, 'asset/_content-images')
+    await mkdir(contentImagesDir, { recursive: true })
 
     // Generate Astro config
     const astroConfig = await createFullAstroConfig(blogConfig, userDir, {

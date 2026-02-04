@@ -10,6 +10,7 @@ import { createMdxCodeMetaPlugin } from './mdx-code-meta.js'
 import { createMdxCodeGroupLabelsPlugin } from './mdx-code-group-labels.js'
 import { createRehypeCodeMetaPlugin } from './rehype-code-meta.js'
 import { createShikiMetaTransformer } from './shiki-code-meta.js'
+import { createRemarkRelativeImagesPlugin } from './remark-relative-images.js'
 
 const VIRTUAL_MODULE_ID = 'virtual:blog-config'
 const RESOLVED_VIRTUAL_MODULE_ID = '\0' + VIRTUAL_MODULE_ID
@@ -165,6 +166,13 @@ export function createAstroConfig(
           '../../../asset/images': path.resolve(userDir, 'asset/images'),
         },
       },
+      server: {
+        fs: {
+          // Allow accessing files from user project and its parent directory
+          // This enables relative paths like ../shared/image.png
+          allow: [packageRoot, userDir, path.dirname(userDir)],
+        },
+      },
     },
   }
 }
@@ -195,14 +203,26 @@ export async function createFullAstroConfig(
 ): Promise<AstroInlineConfig> {
   const config = createAstroConfig(blogConfig, userDir, options)
   const { mdx, react, sitemap, tailwindVite } = await loadIntegrations()
+
+  // Create remark plugins
+  const contentDir = path.resolve(userDir, 'content')
+  const assetDir = path.resolve(userDir, 'asset')
+  const remarkRelativeImagesPlugin = createRemarkRelativeImagesPlugin({ contentDir, assetDir })
   const mdxClientDirectivePlugin = createMdxClientDirectivePlugin(MDX_CLIENT_COMPONENTS)
   const mdxCodeMetaPlugin = createMdxCodeMetaPlugin()
   const mdxCodeGroupLabelsPlugin = createMdxCodeGroupLabelsPlugin()
   const rehypeCodeMetaPlugin = createRehypeCodeMetaPlugin()
   const shikiMetaTransformer = createShikiMetaTransformer()
+
   config.integrations = [
     mdx({
-      remarkPlugins: [mdxClientDirectivePlugin, mdxCodeMetaPlugin, mdxCodeGroupLabelsPlugin],
+      // remarkRelativeImagesPlugin must be first to process images before other plugins
+      remarkPlugins: [
+        remarkRelativeImagesPlugin,
+        mdxClientDirectivePlugin,
+        mdxCodeMetaPlugin,
+        mdxCodeGroupLabelsPlugin,
+      ],
       rehypePlugins: [rehypeCodeMetaPlugin],
       shikiConfig: {
         transformers: [shikiMetaTransformer],
