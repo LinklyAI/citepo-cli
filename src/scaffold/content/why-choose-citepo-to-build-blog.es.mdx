@@ -1,0 +1,85 @@
+---
+title: Por qué elegir CitePo para construir tu blog
+description: La mayoría de las herramientas de blog te hacen elegir entre conveniencia y control. CitePo te da ambos — un blog impulsado por Git que es rápido de configurar, hermoso por defecto, y verdaderamente tuyo.
+date: 2026-01-27
+tags: [citepo, blog, herramientas-desarrollador]
+authors: [CitePo]
+coverImage: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=960&q=80'
+draft: false
+---
+
+Todo desarrollador conoce ese sentimiento. Quieres un blog — para compartir lo que estás construyendo, para establecer tu voz, para atraer tráfico orgánico a tu producto. Pero cada vez que te sientas a configurar uno, terminas pasando horas luchando con herramientas en lugar de escribir.
+
+No estás solo. Esta es una de las frustraciones más comunes en la comunidad de desarrolladores, y es la razón por la que construimos CitePo.
+
+## El dilema del blog
+
+Hay una verdad incómoda sobre el panorama actual de los blogs: las herramientas disponibles hoy te obligan a elegir entre conveniencia y control.
+
+Plataformas como Medium y Substack te permiten empezar a escribir en minutos, pero tu contenido vive en su dominio, bajo su marca, sujeto a sus reglas. Esencialmente estás construyendo la autoridad SEO de otro mientras ellos poseen la relación con tus lectores. Para un diario personal eso podría estar bien, pero para una startup o un desarrollador construyendo una presencia profesional, es inaceptable.
+
+![Un espacio de trabajo de desarrollador con laptop y cuaderno](https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=960&q=80)
+
+En el otro extremo del espectro, las soluciones auto-alojadas como WordPress o Ghost te dan control total, pero vienen con sobrecarga operacional — servidores que mantener, bases de datos que respaldar, parches de seguridad que aplicar. Querías un blog, no un trabajo de administrador de sistemas.
+
+Los generadores de sitios estáticos como Hugo, Jekyll y Gatsby están en algún punto intermedio. Son amigables para desarrolladores en teoría, pero en la práctica tu repositorio termina siendo 90% código del framework y 10% contenido real. Archivos de configuración, dependencias de plugins, boilerplate de temas — todo suma. Cada vez que vuelves después de unos meses, algo está roto y pasas una tarde actualizando dependencias antes de poder escribir una sola palabra.
+
+## Un enfoque diferente
+
+CitePo toma una postura fundamentalmente diferente: **tu repositorio de blog debe contener solo tu contenido**.
+
+Sin `package.json`. Sin `node_modules`. Sin archivos de tema desordenando tu repo. Cuando creas un blog con CitePo, tu repositorio Git contiene exactamente lo que importa — tus artículos en MDX, un único archivo de configuración, y tus imágenes. Eso es todo.
+
+El motor, el tema, el pipeline de construcción — todo eso vive en CitePo y se gestiona para ti. Cuando enviamos mejoras al tema o agregamos nuevas características, las obtienes automáticamente sin tocar tu repositorio. Tu repo se mantiene limpio, enfocado, y fácil de entender incluso si vuelves a él un año después.
+
+Esta separación tiene un efecto profundo en la experiencia de escritura. Abrir tu repositorio de blog se siente como abrir una carpeta de documentos, no un proyecto de software. No hay sobrecarga cognitiva, no hay sistema de construcción que entender, no hay framework que aprender.
+
+![Configuración de escritorio limpia y minimalista](https://images.unsplash.com/photo-1593062096033-9a26b09da705?w=960&q=80)
+
+## Git como la fuente de verdad
+
+Todo en CitePo fluye a través de Git. Escribes en tu editor favorito — VS Code, Cursor, Vim, lo que prefieras. Previsualizas localmente con `npx citepo dev`. Cuando estás satisfecho con el resultado, haces `git push` y tu blog se despliega.
+
+Este flujo de trabajo tiene beneficios que van más allá de la simplicidad. Como tu contenido está en Git, obtienes historial de versiones gratis. Puedes usar pull requests para revisar borradores. Puedes invitar colaboradores a través de tu plataforma Git existente. Los asistentes de codificación con IA pueden ayudarte a escribir y editar directamente en tu editor. No hay CMS propietario que aprender, no hay editor web que pierda tu trabajo cuando el navegador se bloquea.
+
+Para equipos, esto es especialmente poderoso. Las actualizaciones de producto pueden pasar por el mismo proceso de revisión de PR que los cambios de código. Marketing e ingeniería pueden colaborar en el mismo flujo de trabajo. Todo es auditable, reversible y transparente.
+
+## Construido para la era de la IA
+
+Construimos CitePo con una convicción: en los próximos años, una porción significativa de los "lectores" de tu blog serán asistentes de IA recopilando información en nombre de humanos.
+
+Por eso cada blog de CitePo genera automáticamente `llms.txt` — un índice legible por máquinas que ayuda a los asistentes de IA a entender y referenciar tu contenido. Combinado con datos estructurados JSON-LD, tus artículos se convierten en parte del grafo de conocimiento del que los sistemas de IA extraen información. Esto no es un truco; es un cambio fundamental en cómo se descubre y consume el contenido.
+
+<Callout type="tip">
+  CitePo genera automáticamente `llms.txt`, datos estructurados JSON-LD, sitemap, RSS, y etiquetas Open Graph. Tu contenido está optimizado tanto para lectores humanos como para asistentes de IA desde el principio.
+</Callout>
+
+## Hermoso sin esfuerzo
+
+CitePo viene con temas cuidadosamente diseñados que se ven geniales sin ninguna personalización. La tipografía está optimizada para lectura de formato largo en inglés, chino y japonés. El modo oscuro funciona perfectamente. El diseño es responsivo y limpio. Los bloques de código tienen resaltado de sintaxis. Todo simplemente funciona.
+
+Nos obsesionamos con los detalles para que tú no tengas que hacerlo. Las puntuaciones de Lighthouse consistentemente alcanzan 99+. Las páginas cargan instantáneamente porque Astro genera HTML estático puro con JavaScript mínimo. La experiencia de lectura es rápida, libre de distracciones y accesible.
+
+## Comenzando
+
+Crear un blog toma tres comandos:
+
+```bash
+npx citepo new my-blog
+cd my-blog
+npx citepo dev
+```
+
+Esa es toda la configuración. No se requiere cuenta, no se necesita tarjeta de crédito, no hay asistente de configuración. Tu blog está corriendo localmente y listo para tu primer post. Cuando estés listo para ir en vivo, conecta tu repositorio al hosting de CitePo y cada `git push` activa un despliegue automático.
+
+![Persona escribiendo en laptop en una cafetería](https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=960&q=80)
+
+## Lo que viene
+
+CitePo está evolucionando activamente. Dominios personalizados, analíticas respetuosas con la privacidad, temas adicionales, y soporte multi-autor están en el roadmap. Estamos construyendo la plataforma de blog que siempre quisimos — una que respeta tu tiempo, tu contenido, y tu propiedad.
+
+Si alguna vez deseaste un blog que sea tan simple como un repositorio Git pero tan pulido como un sitio diseñado profesionalmente, prueba CitePo. Creemos que sentirás la diferencia inmediatamente.
+
+---
+
+_Construido con [CitePo](https://citepo.com) — la plataforma de blog para desarrolladores._

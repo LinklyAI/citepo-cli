@@ -1,0 +1,166 @@
+---
+title: مرحباً بالعالم
+description: مرحباً بك في مدونتك الجديدة المبنية بـ CitePo. هذه هي مقالتك الأولى — لا تتردد في تعديلها أو حذفها.
+date: 2026-01-01
+tags: [مقدمة, البدء]
+authors: [CitePo]
+coverImage: ''
+draft: false
+---
+
+مرحباً بك في مدونتك الجديدة! هذه مقالة نموذجية أنشأها [CitePo](https://citepo.com) لمساعدتك على البدء.
+
+## ما هو CitePo؟
+
+CitePo هو منصة خفيفة لنشر المدونات. تكتب المقالات بـ **MDX** (Markdown + JSX)، تدفع إلى Git، ويتم بناء ونشر موقعك تلقائياً.
+
+<Callout type="tip">
+  MDX يتيح لك استخدام مكونات غنية داخل Markdown. هذه المقالة نفسها ملف MDX — انتقل إلى قسم "مكونات MDX" لترى ما هو متاح!
+</Callout>
+
+## كتابة أول مقالة حقيقية
+
+أنشئ ملف `.mdx` جديد في مجلد `content/`. كل مقالة تحتاج **frontmatter** في الأعلى:
+
+```mdx
+---
+title: مقالتي الرائعة
+description: ملخص موجز للمقالة
+date: 2025-01-27
+tags: [تقنية, درس]
+---
+
+محتوى markdown الخاص بك هنا...
+```
+
+### حقول Frontmatter المدعومة
+
+| الحقل         | مطلوب | الوصف                              |
+| ------------- | ----- | ---------------------------------- |
+| `title`       | نعم   | عنوان المقالة                      |
+| `description` | نعم   | ملخص قصير (يستخدم للـ SEO)         |
+| `date`        | نعم   | تاريخ النشر (YYYY-MM-DD)           |
+| `tags`        | لا    | مصفوفة وسوم للتصنيف                |
+| `authors`     | لا    | مصفوفة أسماء الكتاب                |
+| `coverImage`  | لا    | مسار صورة الغلاف في `asset/`       |
+| `draft`       | لا    | اضبط `true` للإخفاء في الإنتاج     |
+
+## أمثلة التنسيق
+
+### تنسيق النص
+
+يمكنك كتابة **عريض**، _مائل_، ~~مشطوب~~، و`كود مضمن`.
+
+### كتل الكود
+
+```typescript
+function greet(name: string): string {
+  return `مرحباً، ${name}! أهلاً بك في CitePo.`
+}
+
+console.log(greet('العالم'))
+```
+
+### القوائم
+
+- اكتب في محررك المفضل (VS Code، Cursor، Vim...)
+- معاينة بـ `npx citepo dev`
+- بناء بـ `npx citepo build`
+- نشر بالدفع إلى Git
+
+### اقتباسات
+
+> أفضل وقت لبدء مدونة كان أمس.
+> ثاني أفضل وقت هو الآن.
+
+### مكونات MDX
+
+CitePo يوفر مكونات MDX مدمجة لإثراء مقالاتك. إليك عرض لكل ما هو متاح:
+
+#### Callout
+
+استخدم callouts لتسليط الضوء على المعلومات المهمة:
+
+<Callout type="info">هذا callout **معلومات** — رائع لسياق إضافي.</Callout>
+
+<Callout type="tip">هذا callout **نصيحة** — شارك نصائح مفيدة مع القراء.</Callout>
+
+<Callout type="warning">هذا callout **تحذير** — نبه القراء لمشاكل محتملة.</Callout>
+
+<Callout type="error">
+  هذا callout **خطأ** — أبرز المشاكل الحرجة أو التغييرات الكبيرة.
+</Callout>
+
+#### Card و CardGroup
+
+اعرض العناصر المرتبطة في شبكة منظمة:
+
+<CardGroup cols={2}>
+  <Card title="اكتب بـ MDX" icon="pencil" href="https://citepo.com">
+    استخدم Markdown مع مكونات JSX لمحتوى غني.
+  </Card>
+  <Card title="سير عمل Git-First" icon="git-branch" href="https://citepo.com">
+    ادفع إلى Git وتتحدث مدونتك تلقائياً.
+  </Card>
+  <Card title="أصلي للذكاء الاصطناعي" icon="sparkles" href="https://citepo.com">
+    llms.txt مولد تلقائياً وبيانات منظمة لاكتشاف AI.
+  </Card>
+  <Card title="سريع للغاية" icon="zap" href="https://citepo.com">
+    HTML ثابت مبني بـ Astro. نتيجة Lighthouse 99+.
+  </Card>
+</CardGroup>
+
+#### Accordion
+
+مثالي للأسئلة الشائعة أو المحتوى القابل للطي:
+
+<AccordionGroup>
+  <Accordion title="هل أحتاج لتثبيت شيء؟">
+    لا! CitePo يعمل مع `npx` — فقط شغل `npx citepo new my-blog` للبدء. لا حاجة لتثبيت عام.
+  </Accordion>
+  <Accordion title="هل يمكنني استخدام نطاقي الخاص؟">
+    نعم. CitePo يدعم النطاقات المخصصة. اربط نطاقك في لوحة تحكم CitePo بعد النشر.
+  </Accordion>
+  <Accordion title="هل CitePo مجاني؟">
+    CitePo يقدم طبقة مجانية للمدونات الشخصية. راجع [citepo.com](https://citepo.com) لتفاصيل الأسعار.
+  </Accordion>
+</AccordionGroup>
+
+#### Steps
+
+اعرض التعليمات المتسلسلة بوضوح:
+
+<Steps>
+  <Step title="أنشئ مدونتك">شغل `npx citepo new my-blog` لإنشاء مشروع جديد.</Step>
+  <Step title="اكتب مقالة">
+    أنشئ ملف `.mdx` في `content/` مع frontmatter ومحتواك.
+  </Step>
+  <Step title="معاينة محلياً">شغل `npx citepo dev` لرؤية مدونتك في المتصفح.</Step>
+  <Step title="انشر">ادفع إلى Git وCitePo يبني وينشر موقعك تلقائياً.</Step>
+</Steps>
+
+#### CodeGroup
+
+اعرض عدة مقتطفات كود مع تبديل التبويبات:
+
+<CodeGroup>
+```bash npm
+npx citepo new my-blog
+```
+
+```bash pnpm
+pnpm dlx citepo new my-blog
+```
+
+</CodeGroup>
+
+## الخطوات التالية
+
+<Steps>
+  <Step title="عدل أو أنشئ مقالات">عدل هذه المقالة أو أنشئ واحدة جديدة في `content/`.</Step>
+  <Step title="خصص مدونتك">اضبط إعدادات مدونتك في `blog.json`.</Step>
+  <Step title="أضف أنماط مخصصة">خصص تصميمك في `style.css`.</Step>
+  <Step title="معاينة محلياً">شغل `npx citepo dev` لرؤية تغييراتك.</Step>
+</Steps>
+
+كتابة سعيدة!

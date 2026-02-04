@@ -1,0 +1,166 @@
+---
+title: Olá Mundo
+description: Bem-vindo ao seu novo blog construído com CitePo. Este é seu primeiro post — sinta-se livre para editá-lo ou excluí-lo.
+date: 2026-01-01
+tags: [intro, primeiros-passos]
+authors: [CitePo]
+coverImage: ''
+draft: false
+---
+
+Bem-vindo ao seu novo blog! Este é um post de exemplo gerado pelo [CitePo](https://citepo.com) para ajudá-lo a começar.
+
+## O que é CitePo?
+
+CitePo é uma plataforma leve de publicação de blogs. Você escreve posts em **MDX** (Markdown + JSX), faz push para o Git, e seu site é construído e implantado automaticamente.
+
+<Callout type="tip">
+  MDX permite usar componentes ricos dentro do Markdown. Este post é um arquivo MDX — role até a seção "Componentes MDX" para ver o que está disponível!
+</Callout>
+
+## Escrevendo Seu Primeiro Post Real
+
+Crie um novo arquivo `.mdx` no diretório `content/`. Todo post precisa de **frontmatter** no topo:
+
+```mdx
+---
+title: Meu Post Incrível
+description: Um breve resumo do post
+date: 2025-01-27
+tags: [tech, tutorial]
+---
+
+Seu conteúdo markdown vai aqui...
+```
+
+### Campos de Frontmatter Suportados
+
+| Campo         | Obrigatório | Descrição                                |
+| ------------- | ----------- | ---------------------------------------- |
+| `title`       | Sim         | O título do post                         |
+| `description` | Sim         | Um breve resumo (usado em SEO)           |
+| `date`        | Sim         | Data de publicação (YYYY-MM-DD)          |
+| `tags`        | Não         | Array de tags para categorização         |
+| `authors`     | Não         | Array de nomes de autores                |
+| `coverImage`  | Não         | Caminho para imagem de capa em `asset/`  |
+| `draft`       | Não         | Defina `true` para ocultar em produção   |
+
+## Exemplos de Formatação
+
+### Estilo de Texto
+
+Você pode escrever **negrito**, _itálico_, ~~tachado~~, e `código inline`.
+
+### Blocos de Código
+
+```typescript
+function cumprimentar(nome: string): string {
+  return `Olá, ${nome}! Bem-vindo ao CitePo.`
+}
+
+console.log(cumprimentar('Mundo'))
+```
+
+### Listas
+
+- Escreva no seu editor favorito (VS Code, Cursor, Vim...)
+- Visualize com `npx citepo dev`
+- Construa com `npx citepo build`
+- Implante fazendo push para o Git
+
+### Citações
+
+> O melhor momento para começar um blog foi ontem.
+> O segundo melhor momento é agora.
+
+### Componentes MDX
+
+CitePo fornece componentes MDX integrados para enriquecer seus posts. Aqui está uma amostra de tudo disponível:
+
+#### Callout
+
+Use callouts para destacar informações importantes:
+
+<Callout type="info">Este é um callout de **info** — ótimo para contexto adicional.</Callout>
+
+<Callout type="tip">Este é um callout de **tip** — compartilhe conselhos úteis com os leitores.</Callout>
+
+<Callout type="warning">Este é um callout de **warning** — alerte os leitores sobre possíveis problemas.</Callout>
+
+<Callout type="error">
+  Este é um callout de **error** — destaque problemas críticos ou mudanças importantes.
+</Callout>
+
+#### Card e CardGroup
+
+Exiba itens relacionados em uma grade estruturada:
+
+<CardGroup cols={2}>
+  <Card title="Escreva em MDX" icon="pencil" href="https://citepo.com">
+    Use Markdown com componentes JSX para conteúdo rico.
+  </Card>
+  <Card title="Fluxo Git-First" icon="git-branch" href="https://citepo.com">
+    Faça push para o Git e seu blog atualiza automaticamente.
+  </Card>
+  <Card title="Nativo de IA" icon="sparkles" href="https://citepo.com">
+    llms.txt auto-gerado e dados estruturados para descoberta por IA.
+  </Card>
+  <Card title="Ultra Rápido" icon="zap" href="https://citepo.com">
+    HTML estático construído com Astro. Pontuação Lighthouse 99+.
+  </Card>
+</CardGroup>
+
+#### Accordion
+
+Perfeito para FAQs ou conteúdo colapsável:
+
+<AccordionGroup>
+  <Accordion title="Preciso instalar algo?">
+    Não! CitePo funciona com `npx` — apenas execute `npx citepo new my-blog` para começar. Nenhuma instalação global necessária.
+  </Accordion>
+  <Accordion title="Posso usar meu próprio domínio?">
+    Sim. CitePo suporta domínios personalizados. Conecte seu domínio no painel do CitePo após a implantação.
+  </Accordion>
+  <Accordion title="O CitePo é gratuito?">
+    CitePo oferece um plano gratuito para blogs pessoais. Consulte [citepo.com](https://citepo.com) para detalhes de preços.
+  </Accordion>
+</AccordionGroup>
+
+#### Steps
+
+Mostre instruções sequenciais claramente:
+
+<Steps>
+  <Step title="Crie seu blog">Execute `npx citepo new my-blog` para criar um novo projeto.</Step>
+  <Step title="Escreva um post">
+    Crie um arquivo `.mdx` em `content/` com frontmatter e seu conteúdo.
+  </Step>
+  <Step title="Visualize localmente">Execute `npx citepo dev` para ver seu blog no navegador.</Step>
+  <Step title="Implante">Faça push para o Git e o CitePo constrói e implanta seu site automaticamente.</Step>
+</Steps>
+
+#### CodeGroup
+
+Exiba múltiplos trechos de código com troca de abas:
+
+<CodeGroup>
+```bash npm
+npx citepo new my-blog
+```
+
+```bash pnpm
+pnpm dlx citepo new my-blog
+```
+
+</CodeGroup>
+
+## Próximos Passos
+
+<Steps>
+  <Step title="Edite ou crie posts">Edite este post ou crie um novo em `content/`.</Step>
+  <Step title="Personalize seu blog">Configure as definições do seu blog em `blog.json`.</Step>
+  <Step title="Adicione estilos personalizados">Personalize seu design em `style.css`.</Step>
+  <Step title="Visualize localmente">Execute `npx citepo dev` para ver suas alterações.</Step>
+</Steps>
+
+Boa escrita!
