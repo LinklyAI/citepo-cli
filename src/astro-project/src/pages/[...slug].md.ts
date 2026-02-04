@@ -1,14 +1,23 @@
 import type { APIRoute, GetStaticPaths } from 'astro'
 import { getCollection } from 'astro:content'
 import blogConfig from 'virtual:blog-config'
-import { isMultiLang, getPostSlug } from '../lib/i18n.ts'
+import { isMultiLang, filterPostsByLang, getPostSlug } from '../lib/i18n.ts'
 import { readFile } from 'node:fs/promises'
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  if (isMultiLang(blogConfig)) return []
-
   const posts = await getCollection('blog', ({ data }) => !data.draft)
-  return posts.map((post) => ({
+
+  if (!isMultiLang(blogConfig)) {
+    return posts.map((post) => ({
+      params: { slug: getPostSlug(post.id, blogConfig) },
+      props: { post },
+    }))
+  }
+
+  // Multi-lang: default language posts are served at root
+  const defaultLang = blogConfig.defaultLanguage
+  const defaultPosts = filterPostsByLang(posts, defaultLang, blogConfig)
+  return defaultPosts.map((post) => ({
     params: { slug: getPostSlug(post.id, blogConfig) },
     props: { post },
   }))
