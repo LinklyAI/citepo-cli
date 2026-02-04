@@ -1,18 +1,12 @@
- 'use client'
+'use client'
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@ui/select'
+import { getLanguageLabel } from '../../../engine/languages'
 
 interface LanguageSwitcherProps {
   currentLang: string
   languages: string[]
   translations: Record<string, string>
-}
-
-/** Language display names */
-const LANG_LABELS: Record<string, string> = {
-  en: 'EN',
-  zh: '中文',
-  ja: '日本語',
 }
 
 /** Inline language switcher — current language highlighted, others as links */
@@ -23,7 +17,7 @@ export default function LanguageSwitcher({
 }: LanguageSwitcherProps) {
   if (languages.length <= 1) return null
 
-  const currentLabel = LANG_LABELS[currentLang] ?? currentLang.toUpperCase()
+  const currentLabel = getLanguageLabel(currentLang)
 
   return (
     <div className="flex items-center gap-1 text-sm">
@@ -38,12 +32,12 @@ export default function LanguageSwitcher({
           }
         }}
       >
-        <SelectTrigger size="sm" className="min-w-[4em]">
+        <SelectTrigger size="sm" className="min-w-[4em] select-none">
           <SelectValue>{currentLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent position="popper" align="start">
           {languages.map((lang) => {
-            const label = LANG_LABELS[lang] ?? lang.toUpperCase()
+            const label = getLanguageLabel(lang)
             const url = translations[lang]
             const isCurrent = lang === currentLang
             const isDisabled = !url && !isCurrent

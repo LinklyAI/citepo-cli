@@ -1,9 +1,10 @@
 import { z } from 'zod'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { LANGUAGE_CODES } from './languages.js'
 
 /** Supported language codes */
-const LanguageCode = z.enum(['en', 'zh', 'es', 'pt', 'fr', 'de', 'ja', 'ko', 'ru', 'ar'])
+const LanguageCode = z.enum(LANGUAGE_CODES)
 
 /** Color configuration — allows user to override theme defaults */
 const ColorsSchema = z

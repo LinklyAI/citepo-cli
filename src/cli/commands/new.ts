@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path'
 import { getPackageRoot, getVersion } from '../utils.js'
 import type { LanguageCodeType, ThemeNameType } from '../../engine/config.js'
 import { buildBlogJson, buildReadme, copyScaffoldContent } from '../../engine/starter.js'
+import { LANGUAGE_CODES, LANGUAGE_LABELS, LANGUAGE_HINTS } from '../../engine/languages.js'
 
 const BRAND_BANNER = `
   \x1b[32m██████╗ ██╗ ████████╗ ███████╗ ██████╗   ██████╗
@@ -22,18 +23,11 @@ async function renderBrand(): Promise<void> {
   console.log(`  v${version} — A lightweight CLI for creating, previewing, and building blogs.\n`)
 }
 
-const LANGUAGE_OPTIONS = [
-  { value: 'en', label: 'English', hint: '' },
-  { value: 'zh', label: '中文', hint: 'Chinese' },
-  { value: 'es', label: 'Español', hint: 'Spanish' },
-  { value: 'pt', label: 'Português', hint: 'Portuguese' },
-  { value: 'fr', label: 'Français', hint: 'French' },
-  { value: 'de', label: 'Deutsch', hint: 'German' },
-  { value: 'ja', label: '日本語', hint: 'Japanese' },
-  { value: 'ko', label: '한국어', hint: 'Korean' },
-  { value: 'ru', label: 'Русский', hint: 'Russian' },
-  { value: 'ar', label: 'العربية', hint: 'Arabic' },
-] as const
+const LANGUAGE_OPTIONS = LANGUAGE_CODES.map((code) => ({
+  value: code,
+  label: LANGUAGE_LABELS[code],
+  hint: LANGUAGE_HINTS[code],
+}))
 
 const THEME_OPTIONS = [
   { value: 'clean', label: 'Clean', hint: 'Minimal black & white' },
