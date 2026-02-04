@@ -30,6 +30,9 @@ export const devCommand = new Command('dev')
     // Clear cached .astro to avoid cross-project stale modules
     await clearAstroCache()
 
+    // Disable Astro's update notification (citepo manages its own version updates)
+    process.env.ASTRO_DISABLE_UPDATE_CHECK = 'true'
+
     // Start Astro dev server (switch cwd to package root so .astro/ SSR files can resolve deps)
     const { dev } = await import('astro')
     const restoreCwd = withPackageCwd()
