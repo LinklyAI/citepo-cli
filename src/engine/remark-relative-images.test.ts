@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
-import { createRemarkRelativeImagesPlugin } from './remark-relative-images.js'
+import {
+  createRemarkRelativeImagesPlugin,
+  CONTENT_IMAGES_DIR,
+  CONTENT_IMAGES_URL_PREFIX,
+} from './remark-relative-images.js'
 
 type MdastNode = {
   type: string
@@ -123,10 +127,11 @@ describe('createRemarkRelativeImagesPlugin', () => {
 
     // Check URL was rewritten
     const newUrl = tree.children?.[0]?.url
-    expect(newUrl).toMatch(/^\/_content-images\/[a-f0-9]+\.png$/)
+    expect(newUrl?.startsWith(CONTENT_IMAGES_URL_PREFIX)).toBe(true)
+    expect(newUrl).toMatch(/[a-f0-9]+\.png$/)
 
     // Check file was copied
-    const contentImagesDir = path.join(assetDir, '_content-images')
+    const contentImagesDir = path.join(assetDir, CONTENT_IMAGES_DIR)
     expect(fs.existsSync(contentImagesDir)).toBe(true)
 
     const files = fs.readdirSync(contentImagesDir)
@@ -150,7 +155,8 @@ describe('createRemarkRelativeImagesPlugin', () => {
 
     // Check URL was rewritten
     const newUrl = tree.children?.[0]?.url
-    expect(newUrl).toMatch(/^\/_content-images\/[a-f0-9]+\.png$/)
+    expect(newUrl?.startsWith(CONTENT_IMAGES_URL_PREFIX)).toBe(true)
+    expect(newUrl).toMatch(/[a-f0-9]+\.png$/)
   })
 
   it('should warn when image does not exist', () => {
@@ -232,7 +238,7 @@ describe('createRemarkRelativeImagesPlugin', () => {
     expect(tree.children?.[0]?.url).toBe(tree.children?.[1]?.url)
 
     // Only one file should be in the output directory
-    const contentImagesDir = path.join(assetDir, '_content-images')
+    const contentImagesDir = path.join(assetDir, CONTENT_IMAGES_DIR)
     const files = fs.readdirSync(contentImagesDir)
     expect(files.length).toBe(1)
   })
@@ -255,7 +261,8 @@ describe('createRemarkRelativeImagesPlugin', () => {
 
     // All images should be rewritten
     for (const node of tree.children ?? []) {
-      expect(node.url).toMatch(/^\/_content-images\/[a-f0-9]+\.\w+$/)
+      expect(node.url?.startsWith(CONTENT_IMAGES_URL_PREFIX)).toBe(true)
+      expect(node.url).toMatch(/[a-f0-9]+\.\w+$/)
     }
   })
 

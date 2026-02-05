@@ -3,6 +3,7 @@ import { mkdir } from 'node:fs/promises'
 import { Command } from 'commander'
 import { loadBlogConfig, normalizeBasePath } from '../../engine/config.js'
 import { clearAstroCache, createFullAstroConfig, withPackageCwd } from '../../engine/astro.js'
+import { CONTENT_IMAGES_DIR } from '../../engine/remark-relative-images.js'
 import { handleCommandError } from '../error.js'
 
 export const devCommand = new Command('dev')
@@ -26,8 +27,8 @@ export const devCommand = new Command('dev')
       blogConfig.basePath = normalizeBasePath(options.basePath)
     }
 
-    // Ensure _content-images directory exists for relative image paths
-    const contentImagesDir = path.resolve(userDir, 'asset/_content-images')
+    // Ensure content images directory exists for relative image paths
+    const contentImagesDir = path.resolve(userDir, 'asset', CONTENT_IMAGES_DIR)
     await mkdir(contentImagesDir, { recursive: true })
 
     // Generate Astro config with dynamic integrations

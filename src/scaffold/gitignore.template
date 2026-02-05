@@ -2,4 +2,4 @@ dist/
 node_modules/
 .astro/
 .DS_Store
-_content-images/
+.content-images/

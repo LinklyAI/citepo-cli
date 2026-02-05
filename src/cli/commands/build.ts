@@ -3,6 +3,7 @@ import { mkdir, readdir, stat } from 'node:fs/promises'
 import { Command } from 'commander'
 import { loadBlogConfig, normalizeBasePath } from '../../engine/config.js'
 import { clearAstroCache, createFullAstroConfig, withPackageCwd } from '../../engine/astro.js'
+import { CONTENT_IMAGES_DIR } from '../../engine/remark-relative-images.js'
 import { scanMdxSecurity } from '../../engine/security.js'
 import { runPostBuild } from '../../engine/post-build.js'
 import { handleCommandError } from '../error.js'
@@ -55,8 +56,8 @@ export const buildCommand = new Command('build')
       process.exit(1)
     }
 
-    // Ensure _content-images directory exists for relative image paths
-    const contentImagesDir = path.resolve(userDir, 'asset/_content-images')
+    // Ensure content images directory exists for relative image paths
+    const contentImagesDir = path.resolve(userDir, 'asset', CONTENT_IMAGES_DIR)
     await mkdir(contentImagesDir, { recursive: true })
 
     // Generate Astro config
