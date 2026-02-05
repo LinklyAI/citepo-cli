@@ -1,6 +1,6 @@
 {
   "name": "citepo",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "A lightweight CLI for creating, previewing, and building blogs",
   "type": "module",
   "bin": {
