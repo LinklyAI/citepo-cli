@@ -25,7 +25,6 @@ import {
  * Uses the same logic as remark-relative-images plugin.
  */
 export function resolveCoverImage(coverImage: string | undefined, entryId: string): string | undefined {
-  console.log(`[resolveCoverImage] CALLED with coverImage="${coverImage}", entryId="${entryId}"`)
   if (!coverImage) return undefined
 
   // Handle simple cases that don't need contentDir
@@ -58,17 +57,12 @@ export function resolveCoverImage(coverImage: string | undefined, entryId: strin
   const entryDir = path.dirname(entryId)
   const sourceDir = entryDir && entryDir !== '.' ? path.join(contentDir, entryDir) : contentDir
 
-  console.log(`[resolveCoverImage] entryId=${entryId}, entryDir=${entryDir}, sourceDir=${sourceDir}, coverImage=${coverImage}`)
-
-  const result = resolveImageUrl({
+  return resolveImageUrl({
     imageUrl: coverImage,
     sourceDir,
     contentDir,
     assetDir,
   })
-
-  console.log(`[resolveCoverImage] result=${result}`)
-  return result
 }
 
 export type BuildSitePropsOptions = {
