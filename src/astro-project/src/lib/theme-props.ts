@@ -1,3 +1,4 @@
+import path from 'node:path'
 import type { BlogConfig } from '../../../engine/config.js'
 import type {
   IndexPageProps,
@@ -8,6 +9,7 @@ import type {
   SiteProps,
   PostLink,
 } from '../../../theme/theme-types.js'
+import { resolveImageUrl } from '../../../engine/remark-relative-images.js'
 import {
   getLangHomeUrl,
   getPaginationBaseUrl,
@@ -17,6 +19,57 @@ import {
   getTagsBaseUrl,
   isMultiLang,
 } from './i18n.ts'
+
+/**
+ * Resolve coverImage URL, handling relative paths like MDX content images.
+ * Uses the same logic as remark-relative-images plugin.
+ */
+export function resolveCoverImage(coverImage: string | undefined, entryId: string): string | undefined {
+  console.log(`[resolveCoverImage] CALLED with coverImage="${coverImage}", entryId="${entryId}"`)
+  if (!coverImage) return undefined
+
+  // Handle simple cases that don't need contentDir
+  // External URLs - keep as-is
+  if (coverImage.startsWith('http://') || coverImage.startsWith('https://') || coverImage.startsWith('//')) {
+    return coverImage
+  }
+  // Already absolute path - keep as-is
+  if (coverImage.startsWith('/')) {
+    return coverImage
+  }
+  // images/ alias - convert to absolute path
+  if (coverImage.startsWith('images/')) {
+    return `/${coverImage}`
+  }
+
+  // For relative paths, we need contentDir to resolve them
+  const contentDir = process.env.CITEPO_CONTENT_DIR
+  if (!contentDir) {
+    console.warn(`[resolveCoverImage] CITEPO_CONTENT_DIR not set, cannot resolve: ${coverImage}`)
+    return coverImage
+  }
+
+  // Derive assetDir from contentDir (sibling directory)
+  const userDir = path.dirname(contentDir)
+  const assetDir = path.join(userDir, 'asset')
+
+  // Get the directory containing the MDX file
+  // entry.id is like "zh/hello-world" or "hello-world"
+  const entryDir = path.dirname(entryId)
+  const sourceDir = entryDir && entryDir !== '.' ? path.join(contentDir, entryDir) : contentDir
+
+  console.log(`[resolveCoverImage] entryId=${entryId}, entryDir=${entryDir}, sourceDir=${sourceDir}, coverImage=${coverImage}`)
+
+  const result = resolveImageUrl({
+    imageUrl: coverImage,
+    sourceDir,
+    contentDir,
+    assetDir,
+  })
+
+  console.log(`[resolveCoverImage] result=${result}`)
+  return result
+}
 
 export type BuildSitePropsOptions = {
   config: BlogConfig
@@ -138,7 +191,7 @@ export function mapPostEntryToSummary(entry: PostEntryLike, config: BlogConfig):
     dateISO: dateIso,
     tags: entry.data.tags,
     authors: entry.data.authors,
-    coverImage: entry.data.coverImage,
+    coverImage: resolveCoverImage(entry.data.coverImage, entry.id),
   }
 }
 
@@ -155,7 +208,7 @@ export function mapPostEntryToPost(
     dateISO: dateIso,
     tags: entry.data.tags,
     authors: entry.data.authors,
-    coverImage: entry.data.coverImage,
+    coverImage: resolveCoverImage(entry.data.coverImage, entry.id),
     headings,
   }
 }

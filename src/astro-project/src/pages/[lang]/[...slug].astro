@@ -14,6 +14,7 @@ import {
   Steps,
 } from '@mdx'
 import { isMultiLang, getNonDefaultLanguages, filterPostsByLang, getPostSlug, getPostUrl, getTranslations } from '../../lib/i18n.ts'
+import { resolveCoverImage } from '../../lib/theme-props.ts'
 
 export async function getStaticPaths() {
   if (!isMultiLang(blogConfig)) return []
@@ -69,7 +70,7 @@ const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : undefined
   date={post.data.date}
   tags={post.data.tags}
   authors={post.data.authors}
-  coverImage={post.data.coverImage || undefined}
+  coverImage={resolveCoverImage(post.data.coverImage, post.id) || undefined}
   headings={headings}
   lang={lang}
   translations={translations}
