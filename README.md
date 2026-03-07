@@ -57,10 +57,23 @@ my-blog/
 └── .gitignore
 ```
 
+## Deploy
+
+You can deploy your CitePo blog anywhere that serves static files. The easiest option is [CitePo](https://citepo.com) — connect your GitHub repo, and every push triggers an automatic build and deploy.
+
+1. Push your blog to a GitHub repository
+2. Sign in at [citepo.com](https://citepo.com) and create a new site
+3. Connect your GitHub repo and select the branch
+4. Done — your blog is live at `yoursite.citepo.app`
+
+CitePo also supports custom domains and subdirectory mounting (e.g. `yourdomain.com/blog`).
+
+For other platforms, run `citepo build` and upload the output directory to any static hosting service (Vercel, Netlify, Cloudflare Pages, etc.).
+
 ## Documentation
 
 Full documentation: [docs.citepo.com](https://docs.citepo.com)
 
 ## License
 
-Proprietary. All rights reserved.
+Apache License 2.0 — see [LICENSE](./LICENSE) for details.
