@@ -99,6 +99,35 @@ describe('theme props adapters', () => {
     expect(props.contextualOptions).toEqual(['copy', 'view'])
   })
 
+  it('prefixes logo with basePath', () => {
+    const config = validateBlogConfig({
+      name: 'Test Blog',
+      basePath: '/blog',
+      logo: '/images/logo.png',
+    })
+    const site = buildSiteProps({ config, lang: 'en' })
+    expect(site.logo).toBe('/blog/images/logo.png')
+  })
+
+  it('does not prefix external logo URLs', () => {
+    const config = validateBlogConfig({
+      name: 'Test Blog',
+      basePath: '/blog',
+      logo: 'https://cdn.example.com/logo.png',
+    })
+    const site = buildSiteProps({ config, lang: 'en' })
+    expect(site.logo).toBe('https://cdn.example.com/logo.png')
+  })
+
+  it('keeps logo as-is when basePath is root', () => {
+    const config = validateBlogConfig({
+      name: 'Test Blog',
+      logo: '/images/logo.png',
+    })
+    const site = buildSiteProps({ config, lang: 'en' })
+    expect(site.logo).toBe('/images/logo.png')
+  })
+
   it('maps post entry to summary with basePath', () => {
     const config = validateBlogConfig({ name: 'Test Blog', basePath: '/blog' })
     const summary = mapPostEntryToSummary(

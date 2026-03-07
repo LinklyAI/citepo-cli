@@ -20,6 +20,15 @@ import {
   isMultiLang,
 } from './i18n.ts'
 
+/** Prepend basePath to a local asset path (skip external URLs). */
+function prefixAssetPath(assetPath: string, basePrefix: string): string {
+  if (!basePrefix) return assetPath
+  if (assetPath.startsWith('http://') || assetPath.startsWith('https://') || assetPath.startsWith('//')) {
+    return assetPath
+  }
+  return `${basePrefix}${assetPath.startsWith('/') ? '' : '/'}${assetPath}`
+}
+
 /**
  * Resolve coverImage URL, handling relative paths like MDX content images.
  * Uses the same logic as remark-relative-images plugin.
@@ -114,10 +123,12 @@ export function buildSiteProps({
   const homeUrl = getLangHomeUrl(lang, config)
   const resourceBase = homeUrl === '/' ? '' : homeUrl.replace(/\/+$/, '')
 
+  const basePrefix = config.basePath === '/' ? '' : config.basePath
+
   return {
     name: config.name,
     description: config.description || undefined,
-    logo: config.logo,
+    logo: config.logo ? prefixAssetPath(config.logo, basePrefix) : undefined,
     basePath: config.basePath,
     lang,
     languages: multiLang ? config.languages : undefined,
