@@ -33,21 +33,27 @@ function prefixAssetPath(assetPath: string, basePrefix: string): string {
  * Resolve coverImage URL, handling relative paths like MDX content images.
  * Uses the same logic as remark-relative-images plugin.
  */
-export function resolveCoverImage(coverImage: string | undefined, entryId: string): string | undefined {
+export function resolveCoverImage(
+  coverImage: string | undefined,
+  entryId: string,
+  basePath = '/',
+): string | undefined {
   if (!coverImage) return undefined
+
+  const basePrefix = basePath === '/' ? '' : basePath
 
   // Handle simple cases that don't need contentDir
   // External URLs - keep as-is
   if (coverImage.startsWith('http://') || coverImage.startsWith('https://') || coverImage.startsWith('//')) {
     return coverImage
   }
-  // Already absolute path - keep as-is
+  // Already absolute path - prefix basePath so it resolves under a sub path mount
   if (coverImage.startsWith('/')) {
-    return coverImage
+    return prefixAssetPath(coverImage, basePrefix)
   }
-  // images/ alias - convert to absolute path
+  // images/ alias - convert to absolute path, then prefix basePath
   if (coverImage.startsWith('images/')) {
-    return `/${coverImage}`
+    return prefixAssetPath(`/${coverImage}`, basePrefix)
   }
 
   // For relative paths, we need contentDir to resolve them
@@ -66,12 +72,17 @@ export function resolveCoverImage(coverImage: string | undefined, entryId: strin
   const entryDir = path.dirname(entryId)
   const sourceDir = entryDir && entryDir !== '.' ? path.join(contentDir, entryDir) : contentDir
 
-  return resolveImageUrl({
-    imageUrl: coverImage,
-    sourceDir,
-    contentDir,
-    assetDir,
-  })
+  // resolveImageUrl returns a root-absolute "/.content-images/..." path for
+  // relative images; prefix basePath so it resolves under a sub path mount.
+  return prefixAssetPath(
+    resolveImageUrl({
+      imageUrl: coverImage,
+      sourceDir,
+      contentDir,
+      assetDir,
+    }),
+    basePrefix,
+  )
 }
 
 export type BuildSitePropsOptions = {
@@ -196,13 +207,14 @@ export function mapPostEntryToSummary(entry: PostEntryLike, config: BlogConfig):
     dateISO: dateIso,
     tags: entry.data.tags,
     authors: entry.data.authors,
-    coverImage: resolveCoverImage(entry.data.coverImage, entry.id),
+    coverImage: resolveCoverImage(entry.data.coverImage, entry.id, config.basePath),
   }
 }
 
 export function mapPostEntryToPost(
   entry: PostEntryLike,
   headings?: PostPageProps['post']['headings'],
+  basePath = '/',
 ): PostPageProps['post'] {
   const dateIso = entry.data.date.toISOString()
 
@@ -213,7 +225,7 @@ export function mapPostEntryToPost(
     dateISO: dateIso,
     tags: entry.data.tags,
     authors: entry.data.authors,
-    coverImage: resolveCoverImage(entry.data.coverImage, entry.id),
+    coverImage: resolveCoverImage(entry.data.coverImage, entry.id, basePath),
     headings,
   }
 }

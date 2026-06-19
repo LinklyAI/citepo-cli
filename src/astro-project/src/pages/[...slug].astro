@@ -12,6 +12,7 @@ import {
   CodeGroup,
   Step,
   Steps,
+  createImg,
 } from '@mdx'
 import { isMultiLang, filterPostsByLang, getPostSlug, getPostUrl, getTranslations } from '../lib/i18n.ts'
 import { resolveCoverImage } from '../lib/theme-props.ts'
@@ -50,6 +51,7 @@ const mdxComponents = {
   CodeGroup,
   Step,
   Steps,
+  img: createImg(blogConfig.basePath),
 }
 const translations = isMultiLang(blogConfig)
   ? getTranslations(post.id, allPosts, blogConfig)
@@ -70,7 +72,7 @@ const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : undefined
   date={post.data.date}
   tags={post.data.tags}
   authors={post.data.authors}
-  coverImage={resolveCoverImage(post.data.coverImage, post.id) || undefined}
+  coverImage={resolveCoverImage(post.data.coverImage, post.id, blogConfig.basePath) || undefined}
   headings={headings}
   lang={lang}
   translations={translations}

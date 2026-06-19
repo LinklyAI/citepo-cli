@@ -7,6 +7,7 @@ import {
   buildSiteProps,
   mapPostEntryToPost,
   mapPostEntryToSummary,
+  resolveCoverImage,
 } from './theme-props'
 
 describe('theme props adapters', () => {
@@ -161,5 +162,29 @@ describe('theme props adapters', () => {
     expect(post.tags).toBeUndefined()
     expect(post.authors).toBeUndefined()
     expect(post.headings).toBeUndefined()
+  })
+})
+
+describe('resolveCoverImage basePath handling', () => {
+  it('keeps absolute cover images as-is on a root mount', () => {
+    expect(resolveCoverImage('/images/cover.png', 'hello', '/')).toBe('/images/cover.png')
+  })
+
+  it('prefixes absolute cover images under a sub path mount', () => {
+    expect(resolveCoverImage('/images/cover.png', 'hello', '/blog')).toBe('/blog/images/cover.png')
+  })
+
+  it('prefixes the images/ alias under a sub path mount', () => {
+    expect(resolveCoverImage('images/cover.png', 'hello', '/blog')).toBe('/blog/images/cover.png')
+  })
+
+  it('leaves external cover images untouched under a sub path mount', () => {
+    expect(resolveCoverImage('https://cdn.example.com/c.png', 'hello', '/blog')).toBe(
+      'https://cdn.example.com/c.png',
+    )
+  })
+
+  it('returns undefined when no cover image is set', () => {
+    expect(resolveCoverImage(undefined, 'hello', '/blog')).toBeUndefined()
   })
 })
