@@ -13,10 +13,21 @@ A lightweight CLI for creating, previewing, and building blogs. Create with one 
 ## Quick Start
 
 ```bash
-npx citepo new my-blog
+npx citepo init my-blog
 cd my-blog
 npx citepo dev
 ```
+
+### With an AI agent
+
+Send this line to Claude Code, Codex, OpenClaw, Cursor or any agent that can run commands:
+
+```
+Set up CitePo for me: https://citepo.com/agent-setup.md
+```
+
+The agent installs the CLI and its skill, creates the blog, writes the first post with you
+and gets it published. See [docs/agent-setup.md](./docs/agent-setup.md).
 
 ## Commands
 
@@ -30,15 +41,26 @@ npm install -g citepo
 pnpm install -g citepo
 
 # Using Yarn
-yarn install -g citepo
+yarn global add citepo
 ```
 
-| Command         | Description                      | Key Options                              |
-| --------------- | -------------------------------- | ---------------------------------------- |
-| `citepo new`    | Create a new blog project        | Interactive setup                        |
-| `citepo dev`    | Start local development server   | `-p, --port`, `--base-path`              |
-| `citepo build`  | Build static site for production | `--base-path`, `--site-url`, `--out-dir` |
-| `citepo --help` | Show help information            | N/A                                      |
+| Command                          | Description                                                        |
+| -------------------------------- | ------------------------------------------------------------------ |
+| `citepo init [dir]`              | Create a blog (`--name`, `--lang`, `--langs`, `--theme`, `--yes`)  |
+| `citepo dev`                     | Start the local preview server                                     |
+| `citepo build`                   | Build the static site (images are compressed automatically)        |
+| `citepo check`                   | Check posts, images, links and sizes without building              |
+| `citepo post new \| list`        | Create a post with frontmatter filled in; list posts and URLs      |
+| `citepo tag list`                | List tags and spellings that differ only in case                   |
+| `citepo image add \| optimize`   | Add a compressed image to a post; shrink large images in place     |
+| `citepo docs [topic]`            | Writing reference: frontmatter, components, config, publish        |
+| `citepo skill install \| update` | Install the citepo skill for Claude Code, Codex, OpenClaw and more |
+| `citepo doctor`                  | Check Node.js, citepo, the skill, git and the current folder       |
+| `citepo upgrade`                 | Upgrade citepo with the package manager that installed it          |
+
+Every command accepts `--json` and prints a single JSON document; exit codes are 0 for
+success, 1 for errors and 2 for warnings only. `citepo new` still works as an alias of
+`citepo init`.
 
 > **Tip:** `ctp` is available as a short alias — `npx ctp dev` is equivalent to `npx citepo dev`.
 
