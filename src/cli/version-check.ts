@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { citepoHome } from './paths.js'
@@ -108,14 +108,4 @@ export function getUpdateInfo(current: string): UpdateInfo | null {
   const cache = readCache()
   if (!cache || !isNewerVersion(current, cache.latest)) return null
   return { current, latest: cache.latest, command: 'citepo upgrade' }
-}
-
-/** Read the cache file asynchronously (for `citepo doctor`). */
-export async function readLatestKnownVersion(): Promise<string | null> {
-  try {
-    const data = JSON.parse(await readFile(cachePath(), 'utf-8')) as Partial<UpdateCache>
-    return typeof data.latest === 'string' ? data.latest : null
-  } catch {
-    return null
-  }
 }
