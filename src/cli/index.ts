@@ -9,6 +9,7 @@ import { tagCommand } from './commands/tag.js'
 import { imageCommand } from './commands/image.js'
 import { docsCommand } from './commands/docs.js'
 import { upgradeCommand } from './commands/upgrade.js'
+import { doctorCommand } from './commands/doctor.js'
 import { printJson } from './run.js'
 
 const program = new Command()
@@ -44,6 +45,7 @@ for (const command of [
   imageCommand,
   docsCommand,
   upgradeCommand,
+  doctorCommand,
 ]) {
   program.addCommand(inheritSettings(command, program))
 }
