@@ -87,6 +87,8 @@ export const upgradeCommand = new Command('upgrade')
           hint: `Run it yourself: ${command}`,
         })
       }
+      // The new version's skill files ship with the new package: let it refresh the copies
+      await run(['citepo', 'skill', 'update'], true).catch(() => undefined)
       return { data: { ...result, upgraded: true }, render }
     }),
   )

@@ -9,6 +9,7 @@ import { mark, renderTable, style } from '../output.js'
 import { action } from '../run.js'
 import { getVersion } from '../utils.js'
 import { fetchLatestVersion, isNewerVersion } from '../version-check.js'
+import { findInstalledSkills } from '../../engine/skill-install.js'
 
 const execFileAsync = promisify(execFile)
 
@@ -70,6 +71,29 @@ async function checkCli(): Promise<DoctorCheck> {
         hint: 'Run `citepo upgrade`.',
       }
     : { name: 'citepo', status: 'ok', message: `citepo ${current} (latest)` }
+}
+
+async function checkSkill(): Promise<DoctorCheck> {
+  const current = await getVersion()
+  const installed = await findInstalledSkills()
+  if (installed.length === 0) {
+    return {
+      name: 'skill',
+      status: 'warn',
+      message: 'The citepo agent skill is not installed',
+      hint: 'Run `citepo skill install --agent <app>` (claude-code, codex, openclaw, ...).',
+    }
+  }
+  const outdated = installed.filter((s) => s.version !== null && s.version !== current)
+  const where = installed.map((s) => s.agents.join('/')).join(', ')
+  return outdated.length > 0
+    ? {
+        name: 'skill',
+        status: 'warn',
+        message: `Skill installed for ${where}, but outdated`,
+        hint: 'Run `citepo skill update`.',
+      }
+    : { name: 'skill', status: 'ok', message: `Skill installed for ${where}` }
 }
 
 async function checkGit(): Promise<DoctorCheck> {
@@ -146,13 +170,14 @@ async function checkProject(dir: string): Promise<DoctorCheck[]> {
 }
 
 export async function runDoctor(dir: string): Promise<DoctorReport> {
-  const [cli, git, gh, project] = await Promise.all([
+  const [cli, skill, git, gh, project] = await Promise.all([
     checkCli(),
+    checkSkill(),
     checkGit(),
     checkGh(),
     checkProject(dir),
   ])
-  const checks = [checkNode(), cli, git, gh, ...project]
+  const checks = [checkNode(), cli, skill, git, gh, ...project]
   return { ready: checks.every((c) => c.status !== 'fail'), checks }
 }
 
@@ -163,7 +188,9 @@ const STATUS_MARK: Record<DoctorStatus, () => string> = {
 }
 
 export const doctorCommand = new Command('doctor')
-  .description('Check this machine and folder: Node.js, citepo, git, GitHub CLI, blog project')
+  .description(
+    'Check this machine and folder: Node.js, citepo, agent skill, git, GitHub CLI, blog project',
+  )
   .action(
     action(async () => {
       const report = await runDoctor(process.cwd())
