@@ -142,25 +142,28 @@ The following directories are shipped as raw source (not bundled):
 - `src/mdx-components/` — MDX components
 - `src/scaffold/` — New project template
 
-## Publishing to npm
+## Releasing
 
-1. Update version in `package.json`
-2. Build the package:
-   ```bash
-   pnpm build
-   ```
-3. Verify the package contents:
-   ```bash
-   npm pack
-   tar tzf citepo-<version>.tgz | head -50
-   ```
-4. Publish:
-   ```bash
-   npm publish
-   ```
+Run the release script from an up-to-date `main`:
 
-Ensure the following are included in the tarball:
+```bash
+pnpm release
+```
 
-- `dist/cli/index.js` (CLI executable)
-- `dist/schema.json` (JSON Schema)
-- `src/astro-project/`, `src/theme/`, `src/mdx-components/`, `src/scaffold/` (runtime files)
+It picks the next version (patch / minor / major), shows the commits since the last tag,
+runs typecheck and tests, then commits `package.json`, tags `v<version>` and pushes both.
+
+The pushed tag triggers `.github/workflows/package-runtime.yml`, which:
+
+1. Checks that the tag matches the `package.json` version
+2. Builds, then publishes to npm with trusted publishing (no npm token is stored in the repository)
+3. Packages the runtime and uploads it for hosted builds
+
+Do not edit the `version` in `package.json` by hand; the script reads it as the current version.
+
+To check the tarball contents before a release:
+
+```bash
+pnpm build
+npm pack --dry-run
+```
