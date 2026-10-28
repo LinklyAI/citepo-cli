@@ -4,6 +4,8 @@ import { initCommand } from './commands/init.js'
 import { devCommand } from './commands/dev.js'
 import { buildCommand } from './commands/build.js'
 import { checkCommand } from './commands/check.js'
+import { postCommand } from './commands/post.js'
+import { tagCommand } from './commands/tag.js'
 import { printJson } from './run.js'
 
 const program = new Command()
@@ -29,7 +31,14 @@ program
   })
 
 // Commands are grouped by object (`citepo <object> <action>`); the most frequent ones stay top-level
-for (const command of [initCommand, devCommand, buildCommand, checkCommand]) {
+for (const command of [
+  initCommand,
+  devCommand,
+  buildCommand,
+  checkCommand,
+  postCommand,
+  tagCommand,
+]) {
   program.addCommand(inheritSettings(command, program))
 }
 
