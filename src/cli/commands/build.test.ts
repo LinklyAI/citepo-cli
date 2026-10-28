@@ -20,4 +20,15 @@ describe('assertSafeOutDir', () => {
       expect(() => assertSafeOutDir(project, out), out).toThrow(/would delete/)
     }
   })
+
+  it('handles other drives on Windows and letter case on case-insensitive systems', () => {
+    const win = path.win32
+    expect(() => assertSafeOutDir('C:\\blog', 'D:\\out', win, true)).not.toThrow()
+    expect(() => assertSafeOutDir('C:\\blog', 'C:\\blog\\Content', win, true)).toThrow(
+      /would delete/,
+    )
+    expect(() =>
+      assertSafeOutDir('/work/blog', '/work/blog/Content', path.posix, false),
+    ).not.toThrow()
+  })
 })

@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { readFile, readdir, rename, writeFile } from 'node:fs/promises'
+import { readFile, readdir, realpath, rename, rm, writeFile } from 'node:fs/promises'
 import sharp from 'sharp'
 
 /**
@@ -43,8 +43,11 @@ export function isOptimizableImage(filePath: string): boolean {
  */
 export type OptimizeMode = 'output' | 'source'
 
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+
 /** True for animated PNG (APNG): sharp reads only the first frame. */
 export function isAnimatedPng(input: Buffer): boolean {
+  if (!input.subarray(0, 8).equals(PNG_SIGNATURE)) return false
   const idat = input.indexOf('IDAT')
   const actl = input.indexOf('acTL')
   return actl !== -1 && (idat === -1 || actl < idat)
@@ -95,9 +98,16 @@ export async function optimizeImageFile(
     const output = await optimizeImageBuffer(input, path.extname(filePath), options.mode)
     if (output && output.length <= before * (1 - MIN_SAVING_RATIO)) {
       if (!options.dryRun) {
-        const temp = `${filePath}.citepo-tmp`
-        await writeFile(temp, output)
-        await rename(temp, filePath)
+        // Write through a temp file next to the real file, so a symlink keeps pointing at it
+        const target = await realpath(filePath)
+        const temp = `${target}.citepo-tmp`
+        try {
+          await writeFile(temp, output)
+          await rename(temp, target)
+        } catch (err) {
+          await rm(temp, { force: true })
+          throw err
+        }
       }
       return { before, after: output.length, changed: true }
     }

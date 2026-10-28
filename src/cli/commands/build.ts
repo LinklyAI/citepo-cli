@@ -147,12 +147,21 @@ export const buildCommand = new Command('build')
   )
 
 /** Astro empties the output directory first: never let it point at the project itself. */
-export function assertSafeOutDir(projectDir: string, outDir: string): void {
-  const fromOut = path.relative(outDir, projectDir)
-  const containsProject = fromOut === '' || !fromOut.startsWith('..')
-  const fromProject = path.relative(projectDir, outDir)
+export function assertSafeOutDir(
+  projectDir: string,
+  outDir: string,
+  pathApi: typeof path = path,
+  caseInsensitive = process.platform === 'darwin' || process.platform === 'win32',
+): void {
+  const fold = (p: string) => (caseInsensitive ? p.toLowerCase() : p)
+  const { sep } = pathApi
+  const fromOut = fold(pathApi.relative(outDir, projectDir))
+  // Another drive on Windows gives an absolute path: not inside the out dir
+  const outside = fromOut === '..' || fromOut.startsWith(`..${sep}`) || pathApi.isAbsolute(fromOut)
+  const containsProject = fromOut === '' || !outside
+  const fromProject = fold(pathApi.relative(projectDir, outDir))
   const protectedDir = ['content', 'asset', '.git', 'node_modules'].some(
-    (name) => fromProject === name || fromProject.startsWith(`${name}${path.sep}`),
+    (name) => fromProject === name || fromProject.startsWith(`${name}${sep}`),
   )
   if (containsProject || protectedDir) {
     throw new CliError({

@@ -48,7 +48,7 @@ describe('analyzeMdx', () => {
     const result = await analyzeMdx(
       '![a][pic]\n\n[b][page]\n\n[pic]: /images/a.png\n[page]: /hello\n',
     )
-    expect(result.images).toEqual([{ url: '/images/a.png', line: 1 }])
+    expect(result.images).toEqual([{ url: '/images/a.png', line: 1, reference: true }])
     expect(result.links).toEqual([{ url: '/hello', line: 3 }])
   })
 

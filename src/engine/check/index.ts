@@ -240,12 +240,14 @@ async function checkPost(input: CheckPostInput): Promise<PostRecord | undefined>
     const target = resolveSourceImage(image.url, mdxDir, assetDir, config.basePath)
     if (!target) continue
     const url = image.url.trim()
-    if (image.jsx && !url.startsWith('/')) {
+    if ((image.jsx || image.reference) && !url.startsWith('/')) {
       // Only Markdown images get relative paths rewritten; <img src> is used as written
       issues.push({
         rule: 'relative_img_src',
         severity: 'error',
-        message: `<img src="${url}"> uses a relative path, which breaks on the site`,
+        message: image.jsx
+          ? `<img src="${url}"> uses a relative path, which breaks on the site`
+          : `Reference-style image with a relative path (${url}) breaks on the site`,
         file,
         line: image.line,
         hint: `Use Markdown (![alt](${url})) or a path from the site root, e.g. /images/...`,

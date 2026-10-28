@@ -26,6 +26,8 @@ export interface MdxReference {
   line: number
   /** Set for `<img src>`: only root-absolute paths work there (no relative rewriting). */
   jsx?: boolean
+  /** Set for reference-style images (`![a][id]`), which are not rewritten either. */
+  reference?: boolean
 }
 
 export interface MdxAnalysis {
@@ -111,7 +113,10 @@ export async function analyzeMdx(source: string): Promise<MdxAnalysis> {
     if (node.type === 'image' && node.url) result.images.push({ url: node.url, line })
     if (node.type === 'link' && node.url) result.links.push({ url: node.url, line })
     const referenced = node.identifier ? definitions.get(node.identifier) : undefined
-    if (node.type === 'imageReference' && referenced) result.images.push({ url: referenced, line })
+    // The build rewrites only inline images: a relative reference image is used as written
+    if (node.type === 'imageReference' && referenced) {
+      result.images.push({ url: referenced, line, reference: true })
+    }
     if (node.type === 'linkReference' && referenced) result.links.push({ url: referenced, line })
 
     if ((node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') && node.name) {
