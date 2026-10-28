@@ -66,6 +66,13 @@ export function toErrorDetails(err: unknown): CliErrorDetails {
     if (nodeErr.code === 'ENOENT' && nodeErr.path?.endsWith('blog.json')) {
       return { code: 'config_not_found', message: 'blog.json not found', hint: NOT_A_BLOG_HINT }
     }
+    if (/does not match collection schema/.test(err.message)) {
+      return {
+        code: 'invalid_frontmatter',
+        message: err.message.replace(/\*\*/g, '').trim(),
+        hint: 'Run `citepo check` to see every problem with its file and line.',
+      }
+    }
     return { code: 'unexpected_error', message: err.message }
   }
 

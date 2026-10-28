@@ -9,7 +9,7 @@ import type { PostData } from './content.js'
 const NON_INDEXABLE_SEGMENTS = new Set(['tags', 'page'])
 
 /** Path of a post relative to the site root, without basePath (e.g. "/zh/hello-world"). */
-export function postPathWithoutBase(post: PostData, config: BlogConfig): string {
+export function postPathWithoutBase(post: Pick<PostData, 'slug' | 'lang'>, config: BlogConfig): string {
   const multiLang = (config.languages?.length ?? 0) > 1
   const langPrefix = `${post.lang}/`
   const slug = multiLang && post.slug.startsWith(langPrefix) ? post.slug.slice(langPrefix.length) : post.slug
