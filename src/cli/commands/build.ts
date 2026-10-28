@@ -7,6 +7,7 @@ import { CONTENT_IMAGES_DIR } from '../../engine/remark-relative-images.js'
 import { scanMdxSecurity, type SecurityIssue } from '../../engine/security.js'
 import { runPostBuild } from '../../engine/post-build.js'
 import { HOSTED_LIMITS, LIMIT_WARNING_RATIO } from '../../engine/limits.js'
+import { optimizeOutputImages, type OutputImagesSummary } from '../../engine/images.js'
 import { CliError } from '../error.js'
 import { action } from '../run.js'
 import { formatSize, mark, style } from '../output.js'
@@ -15,6 +16,7 @@ interface BuildFlags {
   basePath?: string
   siteUrl?: string
   outDir: string
+  imageOptimization: boolean
 }
 
 export interface BuildResult {
@@ -27,6 +29,8 @@ export interface BuildResult {
   artifacts: string[]
   /** Security warnings found in MDX content (errors abort the build). */
   securityWarnings: SecurityIssue[]
+  /** Null when image optimization was turned off. */
+  images: OutputImagesSummary | null
   notes: string[]
 }
 
@@ -35,6 +39,10 @@ export const buildCommand = new Command('build')
   .option('--base-path <path>', 'override basePath from blog.json')
   .option('--site-url <url>', 'override siteUrl for canonical URLs, sitemap, RSS')
   .option('--out-dir <dir>', 'output directory', 'dist')
+  .option(
+    '--no-image-optimization',
+    'copy images as they are instead of scaling down and compressing them',
+  )
   .action(
     action(async (ctx, flags: BuildFlags) => {
       // Ensure production mode for React SSR compatibility
@@ -98,6 +106,13 @@ export const buildCommand = new Command('build')
       }
 
       const postBuildResult = await runPostBuild(blogConfig, resolvedOutDir, siteUrl)
+
+      // Generated share images are already small PNG cards
+      let images: OutputImagesSummary | null = null
+      if (flags.imageOptimization) {
+        log('  Optimizing images...')
+        images = await optimizeOutputImages(resolvedOutDir, ['og'])
+      }
       const outputStats = await scanOutputDir(resolvedOutDir)
 
       const artifacts: string[] = []
@@ -123,6 +138,7 @@ export const buildCommand = new Command('build')
         totalBytes: outputStats.totalSize,
         artifacts,
         securityWarnings: scanResult.issues.filter((issue) => issue.severity !== 'error'),
+        images,
         notes,
       }
       return { data, render: renderBuild }
@@ -136,6 +152,12 @@ function renderBuild(data: BuildResult): string {
     `  ${style.dim('Output')}     ${data.outDir}`,
     `  ${style.dim('Artifacts')}  ${data.artifacts.join(', ')}`,
     `  ${style.dim('Files')}      ${data.files} (${formatSize(data.totalBytes)})`,
+    ...(data.images && data.images.optimized > 0
+      ? [
+          `  ${style.dim('Images')}     ${data.images.optimized} of ${data.images.scanned} optimized, ` +
+            `${formatSize(data.images.bytesBefore)} → ${formatSize(data.images.bytesAfter)}`,
+        ]
+      : []),
     ...data.notes.map((note) => `  ${mark.warn()} ${note}`),
     '',
   ].join('\n')
