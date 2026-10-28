@@ -8,7 +8,7 @@
 
 The URL comes from the file path: `content/zh/hello-world.mdx` is served at `/zh/hello-world`.
 Posts in the default language have no language prefix (`content/en/hello-world.mdx` →
-`/hello-world`). Path segments are lowercased and spaces become dashes. Set `slug` to
+`/hello-world`). Path segments are lowercased, spaces become dashes and punctuation is dropped. Set `slug` to
 override it. If the blog is served under a sub path (for example `/blog`), every URL starts
 with that path.
 
@@ -31,20 +31,20 @@ authors: [Jane Doe]
 The post starts here.
 ```
 
-| Field         | Required | Format                | What it does                                                         |
-| ------------- | -------- | --------------------- | -------------------------------------------------------------------- |
-| `title`       | yes      | text                  | Page title, share card title                                         |
-| `description` | yes      | text                  | Search result snippet and share card text; one or two sentences      |
-| `date`        | yes      | `YYYY-MM-DD`          | Publish date; posts are sorted by it                                 |
-| `tags`        | no       | list of text          | Tag pages and keywords; reuse existing spellings (`citepo tag list`) |
-| `authors`     | no       | list of text          | Shown on the post and in structured data                             |
-| `coverImage`  | no       | image path            | Image at the top of the post and in post lists                       |
-| `draft`       | no       | `true` / `false`      | Drafts are never published                                           |
-| `updated`     | no       | `YYYY-MM-DD`          | Last significant update; sent to search engines as the modified date |
-| `noindex`     | no       | `true` / `false`      | Keep the post out of search results and the sitemap                  |
-| `canonical`   | no       | absolute URL          | Original address when the post is republished from elsewhere         |
-| `ogImage`     | no       | image path            | Share image; defaults to `coverImage`, then a generated title card   |
-| `slug`        | no       | `lang/name` or `name` | Overrides the URL taken from the file path                           |
+| Field         | Required | Format                 | What it does                                                         |
+| ------------- | -------- | ---------------------- | -------------------------------------------------------------------- |
+| `title`       | yes      | text                   | Page title, share card title                                         |
+| `description` | yes      | text                   | Search result snippet and share card text; one or two sentences      |
+| `date`        | yes      | `YYYY-MM-DD`           | Publish date; posts are sorted by it                                 |
+| `tags`        | no       | list of text           | Tag pages and keywords; reuse existing spellings (`citepo tag list`) |
+| `authors`     | no       | list of text           | Shown on the post and in structured data                             |
+| `coverImage`  | no       | image path             | Image at the top of the post and in post lists                       |
+| `draft`       | no       | `true` / `false`       | Drafts are never published                                           |
+| `updated`     | no       | `YYYY-MM-DD`           | Last significant update; sent to search engines as the modified date |
+| `noindex`     | no       | `true` / `false`       | Keep it out of search results and the sitemap (still in lists, RSS)  |
+| `canonical`   | no       | absolute URL           | Original address when the post is republished from elsewhere         |
+| `ogImage`     | no       | image path             | Share image; defaults to `coverImage`, `seo.ogImage`, then a card    |
+| `slug`        | no       | `name`, or `lang/name` | Overrides the URL; posts in other languages need the `lang/` prefix  |
 
 Quote titles and descriptions that contain `:` or start with a special character.
 

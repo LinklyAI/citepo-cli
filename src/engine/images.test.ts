@@ -4,7 +4,14 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import sharp from 'sharp'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { encodeAsWebp, MAX_IMAGE_WIDTH, optimizeImageFile, optimizeOutputImages } from './images.js'
+import {
+  encodeAsWebp,
+  isAnimatedPng,
+  MAX_IMAGE_WIDTH,
+  optimizeImageBuffer,
+  optimizeImageFile,
+  optimizeOutputImages,
+} from './images.js'
 
 /** A noisy image compresses badly, like a photo or a detailed screenshot. */
 async function noisyImage(width: number, height: number): Promise<sharp.Sharp> {
@@ -79,5 +86,32 @@ describe('image optimization', () => {
     const webp = await encodeAsWebp(png, '.png')
     expect((await sharp(webp!).metadata()).format).toBe('webp')
     expect(await encodeAsWebp(Buffer.from('<svg/>'), '.svg')).toBeNull()
+  })
+
+  it('leaves animated PNG alone and only shrinks wide images in source mode', async () => {
+    const png = await (await noisyImage(2000, 100)).png().toBuffer()
+    // Mark it as APNG: an acTL chunk before the first IDAT
+    const idat = png.indexOf('IDAT') - 4
+    const apng = Buffer.concat([
+      png.subarray(0, idat),
+      Buffer.from('\0\0\0\x08acTL\0\0\0\x02\0\0\0\0\0\0\0\0', 'binary'),
+      png.subarray(idat),
+    ])
+    expect(isAnimatedPng(apng)).toBe(true)
+    expect(await optimizeImageBuffer(apng, '.png')).toBeNull()
+
+    const narrow = await (await noisyImage(800, 100)).jpeg({ quality: 100 }).toBuffer()
+    expect(await optimizeImageBuffer(narrow, '.jpg', 'source')).toBeNull()
+    expect(await optimizeImageBuffer(narrow, '.jpg', 'output')).not.toBeNull()
+  })
+
+  it('measures width after EXIF rotation', async () => {
+    const portrait = await (await noisyImage(1200, 2400))
+      .jpeg()
+      .withMetadata({ orientation: 6 })
+      .toBuffer()
+    const out = await optimizeImageBuffer(portrait, '.jpg')
+    const meta = await sharp(out!).metadata()
+    expect(meta.width).toBe(MAX_IMAGE_WIDTH)
   })
 })

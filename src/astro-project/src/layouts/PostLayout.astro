@@ -30,6 +30,8 @@ interface Props {
   headings?: Heading[]
   lang?: string
   translations?: Record<string, string>
+  /** Translations to list as hreflang alternates (indexable ones only). */
+  seoTranslations?: Record<string, string>
   prevPost?: PostLink
   nextPost?: PostLink
 }
@@ -48,6 +50,7 @@ const {
   headings = [],
   lang = blogConfig.defaultLanguage,
   translations = {},
+  seoTranslations = {},
   prevPost,
   nextPost,
 } = Astro.props
@@ -91,7 +94,7 @@ const postProps = buildPostPageProps({
   authors={authors}
   tags={tags}
   lang={lang}
-  alternateLanguages={multiLang ? translations : undefined}
+  alternateLanguages={multiLang && !noindex && !canonical ? seoTranslations : undefined}
 >
   <PostPage
     client:load

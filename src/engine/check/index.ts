@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { loadBlogConfig, normalizeBasePath, type BlogConfig } from '../config.js'
@@ -239,7 +239,31 @@ async function checkPost(input: CheckPostInput): Promise<PostRecord | undefined>
   for (const image of images) {
     const target = resolveSourceImage(image.url, mdxDir, assetDir, config.basePath)
     if (!target) continue
-    if (!existsSync(target)) {
+    const url = image.url.trim()
+    if (image.jsx && !url.startsWith('/')) {
+      // Only Markdown images get relative paths rewritten; <img src> is used as written
+      issues.push({
+        rule: 'relative_img_src',
+        severity: 'error',
+        message: `<img src="${url}"> uses a relative path, which breaks on the site`,
+        file,
+        line: image.line,
+        hint: `Use Markdown (![alt](${url})) or a path from the site root, e.g. /images/...`,
+      })
+      continue
+    }
+    if (path.relative(projectDir, target).startsWith('..')) {
+      issues.push({
+        rule: 'image_outside_project',
+        severity: 'error',
+        message: `Image is outside the blog folder: ${url}`,
+        file,
+        line: image.line,
+        hint: 'Copy it into the blog with `citepo image add <file> --post <slug>`.',
+      })
+      continue
+    }
+    if (!existsExactly(projectDir, path.relative(projectDir, target))) {
       issues.push({
         rule: 'missing_image',
         severity: 'error',
@@ -296,17 +320,19 @@ function checkLinks(
 ): void {
   const base = config.basePath === '/' ? '' : config.basePath
   const languages = config.languages && config.languages.length > 1 ? config.languages : []
-  const known = new Set<string>([
-    '/',
-    '/rss.xml',
-    '/llms.txt',
-    '/llms-full.txt',
-    '/skill.md',
-    '/sitemap-index.xml',
-  ])
-  for (const lang of languages) {
+  // Pages the build generates besides posts (see src/astro-project/src/pages)
+  const sitePages = [
+    ...(config.rss ? ['/rss.xml'] : []),
+    ...(config.llmsText ? ['/llms.txt', '/llms-full.txt'] : []),
+    ...(config.skillMd ? ['/skill.md'] : []),
+  ]
+  const known = new Set<string>(['/', '/404', ...sitePages])
+  if (config.sitemap) for (const file of ['/sitemap-index.xml', '/sitemap-0.xml']) known.add(file)
+  if (!base) known.add('/robots.txt')
+  // Non-default languages get their own home page and feeds under /<lang>
+  for (const lang of languages.filter((l) => l !== config.defaultLanguage)) {
     known.add(`/${lang}`)
-    known.add(`/${lang}/rss.xml`)
+    for (const page of sitePages) known.add(`/${lang}${page}`)
   }
   for (const post of posts) {
     if (post.draft) continue
@@ -316,10 +342,10 @@ function checkLinks(
   const langPrefix = languages.length > 0 ? `(?:/(?:${languages.join('|')}))?` : ''
   const generated = new RegExp(`^${langPrefix}/(?:tags(?:/.*)?|page/\\d+|og/.+\\.png)$`)
   const isKnown = (relative: string) =>
-    known.has(relative) || generated.test(relative) || existsSync(path.join(assetDir, relative))
+    known.has(relative) || generated.test(relative) || existsExactly(assetDir, relative)
   // Links like /blog/post in a blog whose blog.json says basePath "/": the hosted site
   // probably serves it under /blog. Reported once instead of once per link.
-  const prefixedLinks = new Map<string, number>()
+  const prefixedLinks = new Map<string, { post: PostRecord; link: MdxReference }[]>()
 
   for (const post of posts) {
     for (const link of post.links) {
@@ -360,7 +386,7 @@ function checkLinks(
       const prefix = /^\/[^/]+/.exec(relative)?.[0]
       const rest = prefix ? relative.slice(prefix.length) : ''
       if (!base && prefix && rest && isKnown(rest)) {
-        prefixedLinks.set(prefix, (prefixedLinks.get(prefix) ?? 0) + 1)
+        prefixedLinks.set(prefix, [...(prefixedLinks.get(prefix) ?? []), { post, link }])
         continue
       }
 
@@ -375,13 +401,27 @@ function checkLinks(
     }
   }
 
-  for (const [prefix, count] of prefixedLinks) {
-    issues.push({
-      rule: 'base_path_links',
-      severity: 'info',
-      message: `${count} link(s) start with ${prefix}/ while blog.json has basePath "/"`,
-      hint: `If the site is served under ${prefix}, check them with \`citepo check --base-path ${prefix}\`.`,
-    })
+  // A real sub path shows up in several links; a single one is more likely a typo
+  for (const [prefix, entries] of prefixedLinks) {
+    if (entries.length >= 2) {
+      issues.push({
+        rule: 'base_path_links',
+        severity: 'info',
+        message: `${entries.length} link(s) start with ${prefix}/ while blog.json has basePath "/"`,
+        hint: `If the site is served under ${prefix}, check them with \`citepo check --base-path ${prefix}\`.`,
+      })
+      continue
+    }
+    for (const { post, link } of entries) {
+      issues.push({
+        rule: 'broken_link',
+        severity: 'warning',
+        message: `No page or file at ${link.url}`,
+        file: post.file,
+        line: link.line,
+        hint: 'Check the slug (`citepo post list` shows every post URL). Drafts are not published.',
+      })
+    }
   }
 }
 
@@ -441,7 +481,7 @@ async function checkSourceSize(
     const root = path.join(projectDir, dir)
     if (!existsSync(root)) continue
     for (const entry of (await readdir(root, { recursive: true })).map(String)) {
-      if (entry.startsWith(CONTENT_IMAGES_DIR)) continue
+      if (entry.split(path.sep)[0] === CONTENT_IMAGES_DIR) continue
       const info = await stat(path.join(root, entry))
       if (!info.isFile()) continue
       total += info.size
@@ -493,7 +533,9 @@ export function resolveSourceImage(
 ): string | null {
   const trimmed = url.trim()
   if (!trimmed || SKIPPED_SCHEMES.test(trimmed)) return null
-  const pathname = safeDecode(trimmed.split(/[?#]/)[0]!)
+  const raw = trimmed.split(/[?#]/)[0]!
+  // The build decodes URL paths it serves, but resolves relative paths as written
+  const pathname = raw.startsWith('/') || raw.startsWith('images/') ? safeDecode(raw) : raw
   if (!IMAGE_EXTENSIONS.has(path.extname(pathname).toLowerCase())) return null
 
   const base = basePath === '/' ? '' : basePath
@@ -504,6 +546,27 @@ export function resolveSourceImage(
   }
   if (pathname.startsWith('images/')) return path.join(assetDir, pathname)
   return path.resolve(mdxDir, pathname)
+}
+
+/**
+ * Whether `relative` exists under `root` with exactly this letter case. macOS and Windows
+ * file systems ignore case, but the hosted build runs on Linux, where it matters.
+ */
+export function existsExactly(root: string, relative: string): boolean {
+  const segments = relative.split(/[\\/]/).filter((s) => s && s !== '.')
+  let dir = root
+  for (const segment of segments) {
+    if (segment === '..') return false
+    let names: string[]
+    try {
+      names = readdirSync(dir)
+    } catch {
+      return false
+    }
+    if (!names.includes(segment)) return false
+    dir = path.join(dir, segment)
+  }
+  return true
 }
 
 /** 1-based line of a top-level frontmatter key, or 1 when it is absent. */

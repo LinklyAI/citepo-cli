@@ -35,13 +35,21 @@ describe('analyzeMdx', () => {
     expect(result.syntaxError).toBeUndefined()
     expect(result.images).toEqual([
       { url: './a.png', line: 4 },
-      { url: '/images/b.png', line: 14 },
+      { url: '/images/b.png', line: 14, jsx: true },
     ])
     expect(result.links).toEqual([
       { url: '/blog/x', line: 10 },
       { url: '/y', line: 12 },
     ])
     expect(result.unknownComponents).toEqual([{ name: 'Foo', line: 8 }])
+  })
+
+  it('resolves reference-style images and links', async () => {
+    const result = await analyzeMdx(
+      '![a][pic]\n\n[b][page]\n\n[pic]: /images/a.png\n[page]: /hello\n',
+    )
+    expect(result.images).toEqual([{ url: '/images/a.png', line: 1 }])
+    expect(result.links).toEqual([{ url: '/hello', line: 3 }])
   })
 
   it('reports syntax errors with a line', async () => {

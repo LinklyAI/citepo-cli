@@ -55,6 +55,14 @@ const mdxComponents = {
 
 // Compute translations
 const translations = getTranslations(post.id, allPosts, blogConfig)
+// hreflang alternates: only translations that are themselves indexable
+const seoTranslations = isMultiLang(blogConfig)
+  ? getTranslations(
+      post.id,
+      allPosts.filter((p) => !p.data.noindex && !p.data.canonical),
+      blogConfig,
+    )
+  : {}
 
 // Compute prev/next posts within the same language
 const langPosts = filterPostsByLang(allPosts, lang, blogConfig)
@@ -80,6 +88,7 @@ const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : undefined
   headings={headings}
   lang={lang}
   translations={translations}
+  seoTranslations={seoTranslations}
   prevPost={prevPost ? { title: prevPost.data.title, url: getPostUrl(prevPost.id, blogConfig) } : undefined}
   nextPost={nextPost ? { title: nextPost.data.title, url: getPostUrl(nextPost.id, blogConfig) } : undefined}
 >

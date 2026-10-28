@@ -37,7 +37,8 @@ export function buildSitemapOptions(config: BlogConfig, posts: PostData[]): NonN
   const noindexPaths = new Set<string>()
   for (const post of posts) {
     const pathname = `${base}${postPathWithoutBase(post, config)}`
-    if (post.noindex) noindexPaths.add(pathname)
+    // Republished posts point their canonical elsewhere: leave them out like noindex ones
+    if (post.noindex || post.canonical) noindexPaths.add(pathname)
     else lastmodByPath.set(pathname, post.updated ?? post.date)
   }
 

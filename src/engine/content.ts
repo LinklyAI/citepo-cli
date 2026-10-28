@@ -14,6 +14,8 @@ export interface PostData {
   updated?: Date
   /** Kept out of search results and the sitemap. */
   noindex: boolean
+  /** Canonical URL of the original when the post is republished. */
+  canonical?: string
   rawContent: string
   /** Language code extracted from file path (e.g., "zh" from "zh/hello-world") */
   lang: string
@@ -63,6 +65,7 @@ export async function readAllPosts(
       draft: fm.draft === true,
       ...(fm.updated ? { updated: new Date(String(fm.updated)) } : {}),
       noindex: fm.noindex === true,
+      ...(typeof fm.canonical === 'string' && fm.canonical ? { canonical: fm.canonical } : {}),
       rawContent: parsed.content,
       lang,
     }

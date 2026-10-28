@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { readFile, readdir, writeFile } from 'node:fs/promises'
+import { readFile, readdir, rename, writeFile } from 'node:fs/promises'
 import sharp from 'sharp'
 
 /**
@@ -35,16 +35,38 @@ export function isOptimizableImage(filePath: string): boolean {
   return OPTIMIZABLE_EXTENSIONS.has(path.extname(filePath).toLowerCase())
 }
 
+/**
+ * How aggressively to re-encode:
+ * - "output": the published copy in the build output; lossy re-encoding is fine
+ * - "source": the user's own files; only images wider than MAX_IMAGE_WIDTH are touched,
+ *   and PNGs stay lossless
+ */
+export type OptimizeMode = 'output' | 'source'
+
+/** True for animated PNG (APNG): sharp reads only the first frame. */
+export function isAnimatedPng(input: Buffer): boolean {
+  const idat = input.indexOf('IDAT')
+  const actl = input.indexOf('acTL')
+  return actl !== -1 && (idat === -1 || actl < idat)
+}
+
 /** Re-encode one image: scale down to MAX_IMAGE_WIDTH and compress in its own format. */
-export async function optimizeImageBuffer(input: Buffer, ext: string): Promise<Buffer | null> {
-  const image = sharp(input, { animated: true })
-  const meta = await image.metadata()
-  // Animated images (multi-page WebP) would lose frames or grow; leave them alone
-  if ((meta.pages ?? 1) > 1 || !meta.width) return null
+export async function optimizeImageBuffer(
+  input: Buffer,
+  ext: string,
+  mode: OptimizeMode = 'output',
+): Promise<Buffer | null> {
+  const meta = await sharp(input, { animated: true }).metadata()
+  // Animated images would lose frames; leave them alone
+  if ((meta.pages ?? 1) > 1 || !meta.width || !meta.height || isAnimatedPng(input)) return null
+
+  // EXIF orientations 5-8 swap width and height once the image is rotated upright
+  const displayWidth = (meta.orientation ?? 1) >= 5 ? meta.height : meta.width
+  const tooWide = displayWidth > MAX_IMAGE_WIDTH
+  if (mode === 'source' && !tooWide) return null
 
   const pipeline = sharp(input).rotate()
-  if (meta.width > MAX_IMAGE_WIDTH)
-    pipeline.resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
+  if (tooWide) pipeline.resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
 
   switch (ext.toLowerCase()) {
     case '.webp':
@@ -53,24 +75,30 @@ export async function optimizeImageBuffer(input: Buffer, ext: string): Promise<B
     case '.jpeg':
       return pipeline.jpeg({ quality: 82, mozjpeg: true }).toBuffer()
     case '.png':
-      // Palette PNG (like pngquant): large savings on screenshots, near-lossless on text
-      return pipeline.png({ palette: true, quality: 90, effort: 8, compressionLevel: 9 }).toBuffer()
+      return mode === 'output'
+        ? // Palette PNG (like pngquant): large savings on screenshots
+          pipeline.png({ palette: true, quality: 90, effort: 8, compressionLevel: 9 }).toBuffer()
+        : pipeline.png({ compressionLevel: 9, effort: 8 }).toBuffer()
     default:
       return null
   }
 }
 
-/** Optimize one file in place. Never throws: a broken image is left as is. */
+/** Optimize one file in place (written through a temp file). Never throws. */
 export async function optimizeImageFile(
   filePath: string,
-  options: { dryRun?: boolean } = {},
+  options: { dryRun?: boolean; mode?: OptimizeMode } = {},
 ): Promise<ImageOptimizeResult> {
   const input = await readFile(filePath)
   const before = input.length
   try {
-    const output = await optimizeImageBuffer(input, path.extname(filePath))
+    const output = await optimizeImageBuffer(input, path.extname(filePath), options.mode)
     if (output && output.length <= before * (1 - MIN_SAVING_RATIO)) {
-      if (!options.dryRun) await writeFile(filePath, output)
+      if (!options.dryRun) {
+        const temp = `${filePath}.citepo-tmp`
+        await writeFile(temp, output)
+        await rename(temp, filePath)
+      }
       return { before, after: output.length, changed: true }
     }
   } catch {

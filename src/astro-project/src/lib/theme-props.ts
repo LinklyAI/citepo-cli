@@ -26,6 +26,8 @@ function prefixAssetPath(assetPath: string, basePrefix: string): string {
   if (assetPath.startsWith('http://') || assetPath.startsWith('https://') || assetPath.startsWith('//')) {
     return assetPath
   }
+  // Idempotent like withBasePath in Img.tsx: "/blog/images/a.png" stays as it is
+  if (assetPath === basePrefix || assetPath.startsWith(`${basePrefix}/`)) return assetPath
   return `${basePrefix}${assetPath.startsWith('/') ? '' : '/'}${assetPath}`
 }
 

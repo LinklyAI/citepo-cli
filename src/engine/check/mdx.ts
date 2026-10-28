@@ -24,6 +24,8 @@ export const MDX_COMPONENT_NAMES = [
 export interface MdxReference {
   url: string
   line: number
+  /** Set for `<img src>`: only root-absolute paths work there (no relative rewriting). */
+  jsx?: boolean
 }
 
 export interface MdxAnalysis {
@@ -39,6 +41,7 @@ interface MdastNode {
   type: string
   name?: string | null
   url?: string
+  identifier?: string
   attributes?: { type: string; name?: string; value?: unknown }[]
   children?: MdastNode[]
   position?: { start: { line: number } }
@@ -93,10 +96,23 @@ export async function analyzeMdx(source: string): Promise<MdxAnalysis> {
     return result
   }
 
+  // Reference-style links and images ([text][id] with "[id]: url" elsewhere)
+  const definitions = new Map<string, string>()
+  const collect = (node: MdastNode) => {
+    if (node.type === 'definition' && node.identifier && node.url) {
+      definitions.set(node.identifier, node.url)
+    }
+    for (const child of node.children ?? []) collect(child)
+  }
+  collect(tree)
+
   const visit = (node: MdastNode) => {
     const line = node.position?.start.line ?? 1
     if (node.type === 'image' && node.url) result.images.push({ url: node.url, line })
     if (node.type === 'link' && node.url) result.links.push({ url: node.url, line })
+    const referenced = node.identifier ? definitions.get(node.identifier) : undefined
+    if (node.type === 'imageReference' && referenced) result.images.push({ url: referenced, line })
+    if (node.type === 'linkReference' && referenced) result.links.push({ url: referenced, line })
 
     if ((node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') && node.name) {
       const name = node.name
@@ -105,7 +121,7 @@ export async function analyzeMdx(source: string): Promise<MdxAnalysis> {
       for (const attr of node.attributes ?? []) {
         if (attr.type !== 'mdxJsxAttribute' || typeof attr.value !== 'string') continue
         if (attr.name === 'src' && (name === 'img' || name === 'Img'))
-          result.images.push({ url: attr.value, line })
+          result.images.push({ url: attr.value, line, jsx: true })
         if (attr.name === 'href') result.links.push({ url: attr.value, line })
       }
     }

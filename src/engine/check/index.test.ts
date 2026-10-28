@@ -121,6 +121,76 @@ describe('runCheck', () => {
   })
 })
 
+describe('runCheck image and link edge cases', () => {
+  let dir: string
+  const write = async (file: string, content: string) => {
+    await mkdir(path.dirname(path.join(dir, file)), { recursive: true })
+    await writeFile(path.join(dir, file), content)
+  }
+
+  beforeEach(async () => {
+    dir = await mkdtemp(path.join(tmpdir(), 'citepo-check-edge-'))
+    await write('blog.json', JSON.stringify({ name: 'Blog' }))
+  })
+
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true })
+  })
+
+  it('flags relative <img src>, wrong letter case and images outside the project', async () => {
+    await write('asset/images/Photo.png', 'png')
+    await write(
+      'content/a.mdx',
+      post(
+        'title: A\ndescription: x\ndate: 2026-01-01',
+        [
+          '<img src="./x.png" />',
+          '',
+          '![case](/images/photo.png)',
+          '',
+          '![outside](../../outside.png)',
+        ].join('\n'),
+      ),
+    )
+    const report = await runCheck(dir)
+    expect(report.issues.map((i) => `${i.rule}:${i.line}`)).toEqual(
+      expect.arrayContaining(['relative_img_src:7', 'missing_image:9', 'image_outside_project:11']),
+    )
+  })
+
+  it('reports a single prefixed link as broken, not as a base path', async () => {
+    await write('content/a.mdx', post('title: A\ndescription: x\ndate: 2026-01-01', '[b](/foo/b)'))
+    await write('content/b.mdx', post('title: B\ndescription: x\ndate: 2026-01-01'))
+    const report = await runCheck(dir)
+    expect(report.issues.map((i) => i.rule)).toEqual(['broken_link'])
+  })
+
+  it('knows generated pages and respects the config flags', async () => {
+    await write(
+      'blog.json',
+      JSON.stringify({
+        name: 'Blog',
+        defaultLanguage: 'en',
+        languages: ['en', 'zh'],
+        skillMd: false,
+      }),
+    )
+    await write(
+      'content/en/a.mdx',
+      post(
+        'title: A\ndescription: x\ndate: 2026-01-01',
+        '[1](/zh/llms.txt) [2](/404) [3](/en) [4](/skill.md)',
+      ),
+    )
+    await write('content/zh/a.mdx', post('title: A\ndescription: x\ndate: 2026-01-01'))
+    const report = await runCheck(dir)
+    expect(report.issues.filter((i) => i.rule === 'broken_link').map((i) => i.message)).toEqual([
+      'No page or file at /en',
+      'No page or file at /skill.md',
+    ])
+  })
+})
+
 describe('resolveSourceImage', () => {
   const asset = '/p/asset'
   it('maps URLs the way the build serves them', () => {

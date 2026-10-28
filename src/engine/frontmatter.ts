@@ -21,7 +21,11 @@ export function createPostFrontmatterSchema(z: Zod) {
     /** Keep this post out of search results and the sitemap. */
     noindex: z.boolean().optional().default(false),
     /** Absolute URL of the original when the post is republished from elsewhere. */
-    canonical: z.string().url().optional(),
+    canonical: z
+      .string()
+      .url()
+      .refine((value) => /^https?:\/\//i.test(value), 'canonical must be an http(s) URL')
+      .optional(),
     /** Share image for this post; defaults to coverImage, then a generated card. */
     ogImage: z.string().optional(),
     /** Custom URL slug; defaults to the file path. */

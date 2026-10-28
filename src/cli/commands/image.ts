@@ -92,7 +92,7 @@ Example:
       } else {
         await copyFile(sourcePath, target)
         // Same-format compression for --keep-format and formats WebP does not cover
-        await optimizeImageFile(target)
+        await optimizeImageFile(target, { mode: 'source' })
       }
 
       const url = `/${relativeUrl}`
@@ -136,8 +136,9 @@ const optimizeImagesCommand = new Command('optimize')
   .addHelpText(
     'after',
     `
-Images wider than 1600px are scaled down and re-encoded in their own format, so every
-reference stays valid. Files are only replaced when they get at least 10% smaller.
+Only images wider than 1600px are changed: scaled down and re-encoded in their own
+format (PNG stays lossless), so every reference stays valid. Files are only replaced
+when they get at least 10% smaller.
 The build already does this for the published site; this shrinks the repository.`,
   )
   .action(
@@ -165,7 +166,7 @@ The build already does this for the published site; this shrinks the repository.
       for (const file of files) {
         if ((await stat(file)).size < minBytes) continue
         scanned++
-        const result = await optimizeImageFile(file, { dryRun: flags.dryRun })
+        const result = await optimizeImageFile(file, { dryRun: flags.dryRun, mode: 'source' })
         if (result.changed) {
           changed.push({
             file: path.relative(projectDir, file).split(path.sep).join('/'),

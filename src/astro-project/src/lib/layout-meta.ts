@@ -155,7 +155,8 @@ export function buildLayoutMeta({
 
   const languages = multiLang ? (config.languages ?? []) : []
   const absolute = (path: string) => `${normalizedSiteUrl ?? ''}${encodePath(path)}`
-  const alternateLinks = multiLang && !noindex && Object.keys(resolvedAlternateLanguages).length > 0
+  // A page that points its canonical elsewhere (or is noindex) is not part of an hreflang set
+  const alternateLinks = multiLang && !noindex && !canonical && Object.keys(resolvedAlternateLanguages).length > 0
     ? [
         ...Object.entries(resolvedAlternateLanguages).map(([hreflang, path]) => ({ hreflang, href: absolute(path) })),
         {
