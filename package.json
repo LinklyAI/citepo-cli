@@ -15,7 +15,8 @@
     "src/ui/",
     "src/theme/",
     "src/mdx-components/",
-    "src/scaffold/"
+    "src/scaffold/",
+    "skills/"
   ],
   "scripts": {
     "build": "tsup && tsx src/engine/schema-cli.ts",
