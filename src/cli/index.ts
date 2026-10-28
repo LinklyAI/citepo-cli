@@ -6,6 +6,7 @@ import { buildCommand } from './commands/build.js'
 import { checkCommand } from './commands/check.js'
 import { postCommand } from './commands/post.js'
 import { tagCommand } from './commands/tag.js'
+import { imageCommand } from './commands/image.js'
 import { printJson } from './run.js'
 
 const program = new Command()
@@ -38,6 +39,7 @@ for (const command of [
   checkCommand,
   postCommand,
   tagCommand,
+  imageCommand,
 ]) {
   program.addCommand(inheritSettings(command, program))
 }

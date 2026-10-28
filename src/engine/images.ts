@@ -61,13 +61,16 @@ export async function optimizeImageBuffer(input: Buffer, ext: string): Promise<B
 }
 
 /** Optimize one file in place. Never throws: a broken image is left as is. */
-export async function optimizeImageFile(filePath: string): Promise<ImageOptimizeResult> {
+export async function optimizeImageFile(
+  filePath: string,
+  options: { dryRun?: boolean } = {},
+): Promise<ImageOptimizeResult> {
   const input = await readFile(filePath)
   const before = input.length
   try {
     const output = await optimizeImageBuffer(input, path.extname(filePath))
     if (output && output.length <= before * (1 - MIN_SAVING_RATIO)) {
-      await writeFile(filePath, output)
+      if (!options.dryRun) await writeFile(filePath, output)
       return { before, after: output.length, changed: true }
     }
   } catch {
@@ -108,4 +111,17 @@ export async function optimizeOutputImages(
   }
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, files.length) }, worker))
   return summary
+}
+
+/**
+ * Encode a new image for a post as WebP, scaled down to MAX_IMAGE_WIDTH. Returns null
+ * for formats that should be copied as they are (SVG, GIF, animations).
+ */
+export async function encodeAsWebp(input: Buffer, ext: string): Promise<Buffer | null> {
+  if (!isOptimizableImage(`x${ext}`)) return null
+  try {
+    return await optimizeImageBuffer(input, '.webp')
+  } catch {
+    return null
+  }
 }

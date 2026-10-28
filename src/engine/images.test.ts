@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import sharp from 'sharp'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { MAX_IMAGE_WIDTH, optimizeImageFile, optimizeOutputImages } from './images.js'
+import { encodeAsWebp, MAX_IMAGE_WIDTH, optimizeImageFile, optimizeOutputImages } from './images.js'
 
 /** A noisy image compresses badly, like a photo or a detailed screenshot. */
 async function noisyImage(width: number, height: number): Promise<sharp.Sharp> {
@@ -63,5 +63,21 @@ describe('image optimization', () => {
     expect(summary.scanned).toBe(1)
     expect(summary.optimized).toBe(1)
     expect((await stat(path.join(dir, 'og', 'card.jpg'))).size).toBe(image.length)
+  })
+
+  it('reports without writing in dry-run mode', async () => {
+    const file = path.join(dir, 'wide.jpg')
+    await (await noisyImage(2400, 300)).jpeg({ quality: 100 }).toFile(file)
+    const before = (await stat(file)).size
+    const result = await optimizeImageFile(file, { dryRun: true })
+    expect(result.changed).toBe(true)
+    expect((await stat(file)).size).toBe(before)
+  })
+
+  it('encodes new images as WebP and passes SVG through', async () => {
+    const png = await (await noisyImage(2000, 100)).png().toBuffer()
+    const webp = await encodeAsWebp(png, '.png')
+    expect((await sharp(webp!).metadata()).format).toBe('webp')
+    expect(await encodeAsWebp(Buffer.from('<svg/>'), '.svg')).toBeNull()
   })
 })
