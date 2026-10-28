@@ -42,12 +42,12 @@ export async function readAllPosts(
     const parsed = parseFrontmatter(raw)
     if (!parsed) continue
 
-    const slug = relativePath.replace(/\.mdx$/, '')
+    const fm = parsed.frontmatter
+    // Same id as Astro's glob loader, so URLs built from it match the generated pages
+    const slug = typeof fm.slug === 'string' && fm.slug ? fm.slug : toEntryId(relativePath)
 
     // Detect language from directory structure (e.g., "zh/hello-world" → "zh")
     const lang = detectLang(slug, defaultLang, configuredLangs)
-
-    const fm = parsed.frontmatter
 
     const post: PostData = {
       slug,
@@ -70,6 +70,20 @@ export async function readAllPosts(
   posts.sort((a, b) => b.date.getTime() - a.date.getTime())
 
   return posts
+}
+
+/**
+ * Entry id as Astro's glob loader generates it: each path segment is slugified the way
+ * github-slugger does (lowercase, punctuation removed, spaces to dashes).
+ * "en/Introducing-Linkly AI.mdx" → "en/introducing-linkly-ai".
+ */
+export function toEntryId(relativePath: string): string {
+  return relativePath
+    .split(/[\\/]/)
+    .map((segment, i, all) => (i === all.length - 1 ? segment.replace(/\.mdx?$/, '') : segment))
+    .map((segment) => segment.toLowerCase().replace(/[^\p{L}\p{M}\p{N}\p{Pc} -]/gu, '').replace(/ /g, '-'))
+    .join('/')
+    .replace(/\/index$/, '')
 }
 
 /** Detect language from file path based on configured languages */

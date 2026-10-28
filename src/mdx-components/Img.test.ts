@@ -35,3 +35,4 @@ describe('withBasePath', () => {
     expect(withBasePath('', '/blog')).toBe('')
   })
 })
+

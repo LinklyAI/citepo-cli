@@ -1,9 +1,63 @@
 import type { BlogConfig } from '../../../engine/config.js'
 import {
   buildAlternateLanguagesForPath,
+  getLangHomeUrl,
   getRssUrl,
   isMultiLang,
 } from './i18n.ts'
+
+/** Slug of the site-level share image: {basePath}/og/index.png */
+export const OG_INDEX_SLUG = 'index'
+
+/** OpenGraph locales (language_TERRITORY) for the supported language codes. */
+const OG_LOCALES: Record<string, string> = {
+  en: 'en_US',
+  zh: 'zh_CN',
+  es: 'es_ES',
+  pt: 'pt_BR',
+  fr: 'fr_FR',
+  de: 'de_DE',
+  ja: 'ja_JP',
+  ko: 'ko_KR',
+  ru: 'ru_RU',
+  ar: 'ar_AR',
+}
+
+export function toOgLocale(lang: string): string {
+  return OG_LOCALES[lang] ?? lang
+}
+
+/** "/blog" + "/blog/zh/hello" → "/zh/hello" */
+export function stripBasePath(pathname: string, basePath: string): string {
+  const base = basePath === '/' ? '' : basePath.replace(/\/+$/, '')
+  if (!base || (pathname !== base && !pathname.startsWith(`${base}/`))) return pathname
+  return pathname.slice(base.length) || '/'
+}
+
+/** Percent-encode a path the same way the browser does, without double-encoding. */
+function encodePath(pathname: string): string {
+  try {
+    return encodeURI(decodeURI(pathname))
+  } catch {
+    return pathname
+  }
+}
+
+/** No trailing slash except for the root, matching Astro's trailingSlash: 'never'. */
+function withoutTrailingSlash(pathname: string): string {
+  return pathname.length > 1 ? pathname.replace(/\/+$/, '') || '/' : pathname
+}
+
+/**
+ * Generated share image for a page: posts get their own card, every other page uses
+ * the site card. See pages/og/[...slug].png.ts.
+ */
+export function generatedOgImagePath(pathname: string, basePath: string, type: 'website' | 'article'): string {
+  const base = basePath === '/' ? '' : basePath.replace(/\/+$/, '')
+  const relative = withoutTrailingSlash(stripBasePath(pathname, basePath))
+  const slug = type === 'article' && relative !== '/' ? relative.replace(/^\//, '') : OG_INDEX_SLUG
+  return `${base}/og/${slug}.png`
+}
 
 export type LayoutMetaInput = {
   config: BlogConfig
@@ -18,9 +72,15 @@ export type LayoutMetaInput = {
   tags?: string[]
   lang: string
   alternateLanguages?: Record<string, string>
+  /** Pages kept out of search results get no canonical or hreflang links. */
+  noindex?: boolean
 }
 
 export type LayoutMetaResult = {
+  /** hreflang links (absolute when siteUrl is set), including x-default. */
+  alternateLinks: { hreflang: string; href: string }[]
+  ogLocale: string
+  ogLocaleAlternates: string[]
   pageTitle: string
   canonicalUrl?: string
   rssUrl?: string
@@ -44,11 +104,15 @@ export function buildLayoutMeta({
   tags = [],
   lang,
   alternateLanguages = {},
+  noindex = false,
 }: LayoutMetaInput): LayoutMetaResult {
   const resolvedTitle = title ?? config.name
   const pageTitle =
     resolvedTitle === config.name ? resolvedTitle : `${resolvedTitle} - ${config.name}`
-  const canonicalUrl = siteUrl ? `${siteUrl}${pathname}` : undefined
+  const normalizedSiteUrl = siteUrl ? siteUrl.replace(/\/+$/, '') : undefined
+  const canonicalUrl = normalizedSiteUrl && !noindex
+    ? `${normalizedSiteUrl}${encodePath(withoutTrailingSlash(pathname))}`
+    : undefined
   const rssUrl = config.rss ? getRssUrl(lang, config) : undefined
   const multiLang = isMultiLang(config)
 
@@ -57,21 +121,14 @@ export function buildLayoutMeta({
       ? buildAlternateLanguagesForPath(pathname, config)
       : alternateLanguages
 
-  const normalizedSiteUrl = siteUrl ? siteUrl.replace(/\/+$/, '') : undefined
   const normalizedBasePath = config.basePath === '/'
     ? ''
     : config.basePath.replace(/\/+$/, '')
 
-  const resolvedOgImage = ogImage
-    ? (siteUrl && !ogImage.startsWith('http') ? `${siteUrl}${ogImage}` : ogImage)
-    : siteUrl
-      ? `${siteUrl}${normalizedBasePath}/og-image.png?${new URLSearchParams({
-          title: resolvedTitle,
-          ...(authors.length > 0 ? { author: authors[0] } : {}),
-          site: config.name,
-          ...(config.theme ? { theme: config.theme } : {}),
-        }).toString()}`
-      : undefined
+  const imagePath = ogImage ?? generatedOgImagePath(pathname, config.basePath, type)
+  const resolvedOgImage = normalizedSiteUrl && !/^https?:\/\//.test(imagePath)
+    ? `${normalizedSiteUrl}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`
+    : imagePath
 
   const jsonLd = buildJsonLd({
     type,
@@ -85,9 +142,26 @@ export function buildLayoutMeta({
     normalizedSiteUrl,
     normalizedBasePath,
     siteName: config.name,
+    lang,
+    logo: config.logo,
   })
 
+  const languages = multiLang ? (config.languages ?? []) : []
+  const absolute = (path: string) => `${normalizedSiteUrl ?? ''}${encodePath(path)}`
+  const alternateLinks = multiLang && !noindex && Object.keys(resolvedAlternateLanguages).length > 0
+    ? [
+        ...Object.entries(resolvedAlternateLanguages).map(([hreflang, path]) => ({ hreflang, href: absolute(path) })),
+        {
+          hreflang: 'x-default',
+          href: absolute(resolvedAlternateLanguages[config.defaultLanguage] ?? getLangHomeUrl(config.defaultLanguage, config)),
+        },
+      ]
+    : []
+
   return {
+    alternateLinks,
+    ogLocale: toOgLocale(lang),
+    ogLocaleAlternates: languages.filter((l) => l !== lang).map(toOgLocale),
     pageTitle,
     canonicalUrl,
     rssUrl,
@@ -111,6 +185,8 @@ type JsonLdInput = {
   normalizedSiteUrl?: string
   normalizedBasePath: string
   siteName: string
+  lang: string
+  logo?: string
 }
 
 function buildJsonLd({
@@ -125,6 +201,8 @@ function buildJsonLd({
   normalizedSiteUrl,
   normalizedBasePath,
   siteName,
+  lang,
+  logo,
 }: JsonLdInput): Record<string, unknown> {
   if (type === 'article') {
     const data: Record<string, unknown> = {
@@ -132,14 +210,19 @@ function buildJsonLd({
       '@type': 'BlogPosting',
       headline: title,
       description,
+      inLanguage: lang,
     }
-    if (canonicalUrl) data.url = canonicalUrl
+    if (canonicalUrl) {
+      data.url = canonicalUrl
+      data.mainEntityOfPage = { '@type': 'WebPage', '@id': canonicalUrl }
+    }
     if (publishedTime) data.datePublished = publishedTime
     if (authors.length > 0) {
       data.author = authors.map((name) => ({ '@type': 'Person', name }))
     }
     if (tags.length > 0) data.keywords = tags.join(', ')
     if (resolvedOgImage) data.image = resolvedOgImage
+    data.publisher = buildPublisher(siteName, logo, normalizedSiteUrl, normalizedBasePath)
     return data
   }
 
@@ -148,9 +231,26 @@ function buildJsonLd({
     '@type': 'Blog',
     name: siteName,
     description,
+    inLanguage: lang,
   }
   if (normalizedSiteUrl) data.url = `${normalizedSiteUrl}${normalizedBasePath}`
   return data
+}
+
+function buildPublisher(
+  siteName: string,
+  logo: string | undefined,
+  normalizedSiteUrl: string | undefined,
+  normalizedBasePath: string,
+): Record<string, unknown> {
+  const publisher: Record<string, unknown> = { '@type': 'Organization', name: siteName }
+  if (logo) {
+    const logoUrl = /^https?:\/\//.test(logo) || !normalizedSiteUrl
+      ? logo
+      : `${normalizedSiteUrl}${normalizedBasePath}${logo.startsWith('/') ? '' : '/'}${logo}`
+    publisher.logo = { '@type': 'ImageObject', url: logoUrl }
+  }
+  return publisher
 }
 
 function buildColorOverrides(config: BlogConfig): string | undefined {

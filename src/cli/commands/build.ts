@@ -82,7 +82,7 @@ export const buildCommand = new Command('build')
     }
 
     // Post-build: generate additional artifacts
-    const postBuildResult = await runPostBuild(blogConfig, contentDir, resolvedOutDir, siteUrl)
+    const postBuildResult = await runPostBuild(blogConfig, resolvedOutDir, siteUrl)
 
     // Collect output stats and print build summary
     const duration = ((Date.now() - startTime) / 1000).toFixed(1)
@@ -100,6 +100,7 @@ export const buildCommand = new Command('build')
 
     console.log(`  Artifacts: ${artifacts.join(', ')}`)
     console.log(`  Files:     ${outputStats.fileCount} (${formatSize(outputStats.totalSize)})`)
+    for (const note of postBuildResult.notes) console.log(`  ${note}`)
     console.log('')
   })
 

@@ -2,7 +2,8 @@
 
 declare module 'virtual:blog-config' {
   import type { BlogConfig } from '../../engine/config.js'
-  const config: BlogConfig & { siteUrl?: string }
+  /** siteUrl comes from --site-url; favicon is detected from asset/ at build time. */
+  const config: BlogConfig & { siteUrl?: string; favicon?: string }
   export default config
 }
 
@@ -16,4 +17,5 @@ declare module '@mdx' {
   export const CodeGroup: typeof import('../../mdx-components/CodeGroup.js').CodeGroup
   export const Steps: typeof import('../../mdx-components/Steps.js').Steps
   export const Step: typeof import('../../mdx-components/Steps.js').Step
+  export const createImg: typeof import('../../mdx-components/Img.js').createImg
 }

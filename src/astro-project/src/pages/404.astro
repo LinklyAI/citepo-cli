@@ -1,0 +1,30 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import ListPage from '@theme/pages/List'
+import blogConfig from 'virtual:blog-config'
+import { filterPostsByLang, getLangHomeUrl, isMultiLang } from '../lib/i18n.ts'
+import { buildListPageProps, mapPostEntryToSummary } from '../lib/theme-props.ts'
+
+// Served by the host for unknown paths: keep the site navigation and point to recent posts.
+const RECENT_POSTS = 5
+const lang = blogConfig.defaultLanguage
+const allPosts = await getCollection('blog', ({ data }) => !data.draft)
+const recentPosts = (isMultiLang(blogConfig) ? filterPostsByLang(allPosts, lang, blogConfig) : allPosts)
+  .sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime())
+  .slice(0, RECENT_POSTS)
+
+const pageProps = buildListPageProps({
+  config: blogConfig,
+  lang,
+  translations: {},
+  title: 'Page not found',
+  description: 'The page you are looking for does not exist. Here are the latest posts.',
+  items: recentPosts.map((post) => mapPostEntryToSummary(post, blogConfig)),
+  backLink: { href: getLangHomeUrl(lang, blogConfig), label: 'All posts' },
+})
+---
+
+<BaseLayout lang={lang} title="Page not found" noindex>
+  <ListPage client:load {...pageProps} />
+</BaseLayout>

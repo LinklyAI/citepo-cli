@@ -36,11 +36,11 @@ describe('theme props adapters', () => {
     const site = buildSiteProps({
       config,
       lang: 'en',
-      translations: { en: '/', zh: '/zh/' },
+      translations: { en: '/', zh: '/zh' },
     })
 
     expect(site.languages).toEqual(['en', 'zh'])
-    expect(site.translations).toEqual({ en: '/', zh: '/zh/' })
+    expect(site.translations).toEqual({ en: '/', zh: '/zh' })
     expect(site.urls?.home).toBe('/blog')
   })
 

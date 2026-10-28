@@ -2,7 +2,7 @@ import type { APIRoute, GetStaticPaths } from 'astro'
 import { getCollection } from 'astro:content'
 import blogConfig from 'virtual:blog-config'
 import { isMultiLang, getNonDefaultLanguages, filterPostsByLang, getPostSlug } from '../../lib/i18n.ts'
-import { readFile } from 'node:fs/promises'
+import { renderPostMarkdown, type BlogEntryLike } from '../../lib/post-data.ts'
 
 export const getStaticPaths: GetStaticPaths = async () => {
   if (!isMultiLang(blogConfig)) return []
@@ -24,20 +24,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 }
 
 export const GET: APIRoute = async ({ props }) => {
-  const post = props.post as { id: string; filePath?: string; body?: string }
-
-  let content = ''
-  if (post.filePath) {
-    try {
-      content = await readFile(post.filePath, 'utf-8')
-    } catch {
-      content = post.body ?? ''
-    }
-  } else {
-    content = post.body ?? ''
-  }
-
-  return new Response(content, {
+  return new Response(renderPostMarkdown(props.post as BlogEntryLike), {
     headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
   })
 }

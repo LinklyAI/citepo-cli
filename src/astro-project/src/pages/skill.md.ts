@@ -1,10 +1,9 @@
 import type { APIRoute } from 'astro'
-import type { CollectionEntry } from 'astro:content'
 import { getCollection } from 'astro:content'
 import blogConfig from 'virtual:blog-config'
-import { filterPostsByLang, getPostLang, isMultiLang } from '../lib/i18n.ts'
+import { filterPostsByLang, isMultiLang } from '../lib/i18n.ts'
+import { entriesToPostData } from '../lib/post-data.ts'
 import { generateSkillMd } from '../../../engine/generators/skill-md.js'
-import type { PostData } from '../../../engine/content.js'
 
 export const GET: APIRoute = async () => {
   const config = blogConfig
@@ -17,29 +16,10 @@ export const GET: APIRoute = async () => {
   const langPosts = isMultiLang(config)
     ? filterPostsByLang(allPosts, defaultLang, config)
     : allPosts
-  const mappedPosts = mapEntriesToPostData(langPosts, config)
+  const mappedPosts = entriesToPostData(langPosts, config)
   const content = generateSkillMd(config, mappedPosts, { language: defaultLang })
 
   return new Response(content, {
     headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
   })
-}
-
-function mapEntriesToPostData(
-  entries: CollectionEntry<'blog'>[],
-  config: typeof blogConfig,
-): PostData[] {
-  return entries
-    .map((post) => ({
-      slug: post.id,
-      title: post.data.title,
-      description: post.data.description ?? '',
-      date: new Date(post.data.date),
-      tags: post.data.tags ?? [],
-      authors: post.data.authors ?? [],
-      draft: false,
-      rawContent: post.body ?? '',
-      lang: getPostLang(post.id, config),
-    }))
-    .sort((a, b) => b.date.getTime() - a.date.getTime())
 }

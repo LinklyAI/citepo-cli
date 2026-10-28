@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseFrontmatter, detectLang } from './content.js'
+import { parseFrontmatter, detectLang, toEntryId } from './content.js'
 
 describe('parseFrontmatter', () => {
   it('should parse standard frontmatter', () => {
@@ -87,5 +87,14 @@ describe('detectLang', () => {
   it('should return default when path does not match any language', () => {
     expect(detectLang('hello-world', 'en', ['en', 'zh'])).toBe('en')
     expect(detectLang('fr/hello-world', 'en', ['en', 'zh'])).toBe('en')
+  })
+})
+
+describe('toEntryId', () => {
+  it('matches the ids Astro generates for content files', () => {
+    expect(toEntryId('en/Introducing-linkly-ai.mdx')).toBe('en/introducing-linkly-ai')
+    expect(toEntryId('My Post!.mdx')).toBe('my-post')
+    expect(toEntryId('zh/你好世界.mdx')).toBe('zh/你好世界')
+    expect(toEntryId('guides/index.mdx')).toBe('guides')
   })
 })

@@ -190,12 +190,12 @@ export function getTranslations(
 /**
  * Get the home URL for a language.
  * - Single-lang: /
- * - Multi-lang: /{lang}/
+ * - Multi-lang: /{lang} (no trailing slash, matching trailingSlash: 'never')
  */
 export function getLangHomeUrl(lang: string, config: I18nConfig): string {
   const base = config.basePath === '/' ? '' : config.basePath
   if (!isMultiLang(config) || lang === config.defaultLanguage) return base || '/'
-  return `${base}/${lang}/`
+  return `${base}/${lang}`
 }
 
 /** Get the tags base URL for a language */

@@ -11,6 +11,8 @@ import { createMdxCodeGroupLabelsPlugin } from './mdx-code-group-labels.js'
 import { createRehypeCodeMetaPlugin } from './rehype-code-meta.js'
 import { createShikiMetaTransformer } from './shiki-code-meta.js'
 import { createRemarkRelativeImagesPlugin } from './remark-relative-images.js'
+import { readAllPosts } from './content.js'
+import { buildSitemapOptions } from './sitemap.js'
 
 const VIRTUAL_MODULE_ID = 'virtual:blog-config'
 const RESOLVED_VIRTUAL_MODULE_ID = '\0' + VIRTUAL_MODULE_ID
@@ -20,7 +22,7 @@ const MDX_CLIENT_COMPONENTS = ['AccordionGroup', 'CodeGroup']
  * Vite virtual module plugin: injects BlogConfig as `virtual:blog-config`.
  * Astro pages can access it via `import config from 'virtual:blog-config'`.
  */
-function blogConfigPlugin(blogConfig: BlogConfig, siteUrl?: string): Plugin {
+function blogConfigPlugin(blogConfig: BlogConfig, siteUrl?: string, favicon?: string): Plugin {
   return {
     name: 'citepo:blog-config',
     resolveId(id: string) {
@@ -28,7 +30,7 @@ function blogConfigPlugin(blogConfig: BlogConfig, siteUrl?: string): Plugin {
     },
     load(id: string) {
       if (id === RESOLVED_VIRTUAL_MODULE_ID) {
-        const data = siteUrl ? { ...blogConfig, siteUrl } : blogConfig
+        const data = { ...blogConfig, ...(siteUrl ? { siteUrl } : {}), ...(favicon ? { favicon } : {}) }
         return `export default ${JSON.stringify(data)}`
       }
     },
@@ -60,6 +62,18 @@ function userStylePlugin(userDir: string): Plugin {
   }
 }
 
+
+/**
+ * Pick the site icon from the user's asset/ directory: favicon.svg, then favicon.ico,
+ * then the blog logo. Returns a root-absolute path (without basePath), or undefined.
+ */
+export function resolveFavicon(userDir: string, logo?: string): string | undefined {
+  for (const name of ['favicon.svg', 'favicon.ico']) {
+    if (fs.existsSync(path.resolve(userDir, 'asset', name))) return `/${name}`
+  }
+  if (logo && !/^(https?:)?\/\//.test(logo)) return logo.startsWith('/') ? logo : `/${logo}`
+  return logo
+}
 
 /**
  * Temporarily switch process.cwd() to citepo's package root so that
@@ -137,6 +151,9 @@ export function createAstroConfig(
     outDir,
     base: blogConfig.basePath,
     site: options?.siteUrl,
+    // One URL form everywhere (canonical, hreflang, sitemap, RSS): no trailing slash.
+    // Hosts that proxy the blog (e.g. Next.js) redirect "/x/" to "/x" by default.
+    trailingSlash: 'never',
     configFile: false,
     prefetch: {
       prefetchAll: true,
@@ -152,7 +169,7 @@ export function createAstroConfig(
     ],
     vite: {
       plugins: [
-        blogConfigPlugin(blogConfig, options?.siteUrl),
+        blogConfigPlugin(blogConfig, options?.siteUrl, resolveFavicon(userDir, blogConfig.logo)),
         userStylePlugin(userDir),
       ],
       resolve: {
@@ -233,7 +250,9 @@ export async function createFullAstroConfig(
       },
     }),
     react(),
-    ...(blogConfig.sitemap ? [sitemap()] : []),
+    ...(blogConfig.sitemap
+      ? [sitemap(buildSitemapOptions(blogConfig, await readAllPosts(contentDir, blogConfig)))]
+      : []),
   ]
 
   // Prepend Tailwind CSS v4 Vite plugin to the plugins list

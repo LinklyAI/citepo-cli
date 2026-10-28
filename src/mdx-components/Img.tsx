@@ -32,7 +32,8 @@ export function withBasePath(src: string | undefined, basePath: string): string 
  * content.
  */
 export function createImg(basePath: string) {
-  return function Img({ src, alt = '', ...rest }: ComponentPropsWithoutRef<'img'>) {
-    return <img src={withBasePath(src, basePath)} alt={alt} {...rest} />
+  // Content images are below the fold more often than not: load them lazily by default.
+  return function Img({ src, alt = '', loading = 'lazy', decoding = 'async', ...rest }: ComponentPropsWithoutRef<'img'>) {
+    return <img src={withBasePath(src, basePath)} alt={alt} loading={loading} decoding={decoding} {...rest} />
   }
 }

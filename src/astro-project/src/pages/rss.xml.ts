@@ -1,7 +1,7 @@
 import rss from '@astrojs/rss'
 import { getCollection } from 'astro:content'
 import type { APIContext } from 'astro'
-import { isMultiLang, filterPostsByLang, getPostUrl } from '../lib/i18n.ts'
+import { isMultiLang, filterPostsByLang, getPostUrl, getLangHomeUrl } from '../lib/i18n.ts'
 import blogConfig from 'virtual:blog-config'
 
 export async function GET(context: APIContext) {
@@ -26,7 +26,12 @@ export async function GET(context: APIContext) {
   return rss({
     title: blogConfig.name || 'Blog',
     description: blogConfig.description || '',
-    site: context.site?.toString() || blogConfig.siteUrl || 'https://example.com',
+    // Channel link is the blog home (including basePath), not the host root
+    site: new URL(
+      getLangHomeUrl(i18nConfig.defaultLanguage, i18nConfig),
+      context.site?.toString() || blogConfig.siteUrl || 'https://example.com',
+    ).toString(),
+    trailingSlash: false,
     items: sortedPosts.map((post) => ({
       title: post.data.title,
       description: post.data.description,
