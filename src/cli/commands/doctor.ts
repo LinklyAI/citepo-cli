@@ -10,6 +10,8 @@ import { action } from '../run.js'
 import { getVersion } from '../utils.js'
 import { fetchLatestVersion, isNewerVersion, updateCheckEnabled } from '../version-check.js'
 import { findInstalledSkills } from '../../engine/skill-install.js'
+import { api } from '../platform/client.js'
+import { loadCredentials } from '../platform/credentials.js'
 
 const execFileAsync = promisify(execFile)
 
@@ -99,6 +101,29 @@ async function checkSkill(): Promise<DoctorCheck> {
     : { name: 'skill', status: 'ok', message: `Skill installed for ${where}` }
 }
 
+async function checkLogin(): Promise<DoctorCheck> {
+  const credentials = await loadCredentials()
+  if (!credentials) {
+    return {
+      name: 'login',
+      status: 'warn',
+      message: 'Not signed in to CitePo',
+      hint: 'Needed to create and publish sites: `citepo auth login` (agents: `citepo auth login --no-wait --json`).',
+    }
+  }
+  try {
+    const me = await api<{ email: string; githubLinked: boolean }>('GET', '/api/cli/me')
+    return {
+      name: 'login',
+      status: 'ok',
+      message: `Signed in to CitePo as ${me.email}${credentials.source === 'env' ? ' (CITEPO_TOKEN)' : ''}`,
+    }
+  } catch (err) {
+    const details = toErrorDetails(err)
+    return { name: 'login', status: 'warn', message: details.message, hint: details.hint }
+  }
+}
+
 async function checkGit(): Promise<DoctorCheck> {
   const out = await tryRun('git', ['--version'])
   return out
@@ -173,14 +198,15 @@ async function checkProject(dir: string): Promise<DoctorCheck[]> {
 }
 
 export async function runDoctor(dir: string): Promise<DoctorReport> {
-  const [cli, skill, git, gh, project] = await Promise.all([
+  const [cli, skill, login, git, gh, project] = await Promise.all([
     checkCli(),
     checkSkill(),
+    checkLogin(),
     checkGit(),
     checkGh(),
     checkProject(dir),
   ])
-  const checks = [checkNode(), cli, skill, git, gh, ...project]
+  const checks = [checkNode(), cli, skill, login, git, gh, ...project]
   return { ready: checks.every((c) => c.status !== 'fail'), checks }
 }
 
@@ -192,7 +218,7 @@ const STATUS_MARK: Record<DoctorStatus, () => string> = {
 
 export const doctorCommand = new Command('doctor')
   .description(
-    'Check this machine and folder: Node.js, citepo, agent skill, git, GitHub CLI, blog project',
+    'Check this machine and folder: Node.js, citepo, agent skill, CitePo login, git, GitHub CLI, blog project',
   )
   .action(
     action(async () => {

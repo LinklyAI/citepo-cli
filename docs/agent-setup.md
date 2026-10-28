@@ -8,9 +8,9 @@ Set up CitePo for me: https://citepo.com/agent-setup.md
 ```
 
 The agent installs the `citepo` CLI and its skill, creates your blog, writes the first post
-with you, and gets it published. You will be asked to approve installs and to click through
-two pages in your browser (signing in to GitHub if needed, and connecting the repository on
-citepo.com).
+with you, and gets it published. You will be asked to approve installs, to approve the
+CitePo sign-in in your browser, and the first time, to link GitHub and allow the CitePo app on
+the repository.
 
 ---
 
@@ -54,7 +54,7 @@ citepo --version && citepo doctor --json
 | `project` check is `warn` (no blog.json)     | Step 3   |
 | A blog exists but has only the sample posts  | Step 4   |
 | `repository` check is `warn` (no git remote) | Step 5   |
-| Everything `ok`                              | Step 6   |
+| Everything else `ok` (incl. `login` `warn`)  | Step 6   |
 
 If `node` fails, the user needs Node.js 20 or newer first (https://nodejs.org); ask them to
 install it.
@@ -118,13 +118,32 @@ Without the GitHub CLI, ask the user to create an empty repository on github.com
 
 Check: `citepo doctor --json` shows the `repository` check as `ok`.
 
-### Step 6: Connect and publish
+### Step 6: Sign in to CitePo and publish
 
-Ask the user to open https://citepo.com/new in the browser, sign in, create a site and choose
-this repository (CitePo installs its GitHub App on it). The first build starts right away; the
-site address is `<name>.citepo.app`.
+```bash
+citepo auth login --no-wait --json
+```
 
-Check: the user confirms the site is live, or opens the address and sees the blog.
+Send the user the `url` and `code` from the result: they open the link on any device, check
+that the code matches, and approve (signing up first if they have no account). Then:
+
+```bash
+citepo auth login --wait --json        # run again on login_timeout
+citepo site create --name "<Blog name>" --slug <subdomain> --json
+citepo site connect --json
+```
+
+If `site connect` returns `github_not_linked` or `app_not_installed`, send the user the page in
+`error.hint`: they link GitHub and install the CitePo GitHub App on the repository once. Run
+`citepo site connect --json` again afterwards (or `citepo site status --json` if they connected
+the repository on that page).
+
+```bash
+citepo deploy wait --json
+```
+
+Check: the result is `"status": "success"` with the site `url`. On `deploy_failed`, read the
+message, fix the blog (`citepo check`, `citepo build`), commit, push and wait again.
 
 ### Step 7: Report
 

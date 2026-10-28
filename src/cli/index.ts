@@ -11,6 +11,9 @@ import { docsCommand } from './commands/docs.js'
 import { upgradeCommand } from './commands/upgrade.js'
 import { doctorCommand } from './commands/doctor.js'
 import { skillCommand } from './commands/skill.js'
+import { authCommand } from './commands/auth.js'
+import { siteCommand } from './commands/site.js'
+import { deployCommand } from './commands/deploy.js'
 import { printJson } from './run.js'
 
 const program = new Command()
@@ -47,6 +50,9 @@ for (const command of [
   docsCommand,
   upgradeCommand,
   skillCommand,
+  authCommand,
+  siteCommand,
+  deployCommand,
   doctorCommand,
 ]) {
   program.addCommand(inheritSettings(command, program))

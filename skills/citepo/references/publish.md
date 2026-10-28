@@ -29,6 +29,26 @@ Hosted build limits:
 The build scales down and compresses images automatically. To make the repository smaller,
 run `citepo image optimize`.
 
+## Publishing from the CLI
+
+```bash
+citepo auth login                 # once per machine; agents: --no-wait --json, then --wait --json
+citepo site create --name "My Blog" --slug my-blog --json   # address my-blog.citepo.app
+citepo site connect --json        # connects the GitHub repo of this folder (git remote origin)
+citepo deploy wait --json         # waits until the pushed commit is live, or reports why it failed
+```
+
+- `citepo auth login --no-wait --json` returns `url` and `code`. The user opens the link on any
+  device, checks the code and approves; then `citepo auth login --wait --json` finishes (run it
+  again on `login_timeout`). On servers, `CITEPO_TOKEN` can carry the token instead
+  (`citepo auth token` prints it on a machine that is signed in).
+- The first `site connect` of an account may fail with `github_not_linked` or
+  `app_not_installed`: the user has to link GitHub and install the CitePo GitHub App once, in
+  the browser. The error's `hint` names the page. Later connects work from the CLI.
+- After each `git push`, `citepo deploy wait --json` follows the build of that commit.
+  `citepo deploy logs` shows every build stage; `citepo deploy start` builds again.
+- `citepo site status --json` shows the address, repository and last deploy.
+
 ## Preview locally
 
 `citepo dev` serves the blog at http://localhost:4321 and reloads on changes.

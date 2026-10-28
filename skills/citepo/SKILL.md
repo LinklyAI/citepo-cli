@@ -39,9 +39,14 @@ and whether the current folder is a blog.
    delete them.
 4. Put it on GitHub: `git init && git add -A && git commit -m "Create blog"`, then create a
    repository and push, e.g. `gh repo create my-blog --private --source . --push`.
-5. Publishing: the user connects the repository to a CitePo site at https://citepo.com
-   (sign in → New site → choose the repository). This installs the CitePo GitHub App on the
-   repository, which needs the user's browser. After that, every push publishes the blog.
+5. Publish it on CitePo (details in `references/publish.md`):
+   ```bash
+   citepo auth login --no-wait --json   # send the url and code to the user; they approve
+   citepo auth login --wait --json      # repeat on login_timeout
+   citepo site create --name "My Blog" --slug my-blog --json
+   citepo site connect --json           # first time: the hint names a page the user opens once
+   citepo deploy wait --json            # until live; returns the site url
+   ```
 
 ## Write a post
 
@@ -59,7 +64,8 @@ and whether the current folder is a blog.
 4. Link other posts by URL (`citepo post list --json` lists them), never by `.mdx` file.
 5. `citepo check --json`; fix every error, and the warnings about this post.
 6. Optional preview: `citepo dev` (http://localhost:4321; it keeps running).
-7. Commit; push when the user wants it published.
+7. Commit; push when the user wants it published, then `citepo deploy wait --json` and give
+   the user the URL (or the failure reason from the result).
 
 ## Update a post
 
