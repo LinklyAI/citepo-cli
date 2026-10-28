@@ -123,4 +123,22 @@ describe('layout meta hreflang links', () => {
     expect(meta.canonicalUrl).toBeUndefined()
     expect(meta.alternateLinks).toEqual([])
   })
+
+  it('uses a canonical override and adds dateModified for updated posts', () => {
+    const meta = buildLayoutMeta({
+      config,
+      siteUrl: 'https://x.com',
+      pathname: '/blog/hello',
+      lang: 'en',
+      type: 'article',
+      publishedTime: '2026-01-01T00:00:00.000Z',
+      modifiedTime: '2026-03-01T00:00:00.000Z',
+      canonical: 'https://original.example/post',
+    })
+    expect(meta.canonicalUrl).toBe('https://original.example/post')
+    expect(meta.jsonLd).toMatchObject({
+      dateModified: '2026-03-01T00:00:00.000Z',
+      mainEntityOfPage: { '@id': 'https://original.example/post' },
+    })
+  })
 })

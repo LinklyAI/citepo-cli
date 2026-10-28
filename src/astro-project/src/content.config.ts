@@ -13,6 +13,14 @@ const blog = defineCollection({
     authors: z.array(z.string()).optional().default([]),
     coverImage: z.string().optional().default(''),
     draft: z.boolean().optional().default(false),
+    /** Last significant update; shown to search engines as dateModified and sitemap lastmod. */
+    updated: z.coerce.date().optional(),
+    /** Keep this post out of search results and the sitemap. */
+    noindex: z.boolean().optional().default(false),
+    /** Absolute URL of the original when the post is republished from elsewhere. */
+    canonical: z.string().url().optional(),
+    /** Share image for this post; defaults to coverImage, then a generated card. */
+    ogImage: z.string().optional(),
   }),
 })
 

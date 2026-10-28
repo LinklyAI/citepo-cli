@@ -32,6 +32,7 @@ function makePost(overrides?: Partial<PostData>): PostData {
     tags: ['tech'],
     authors: ['Author'],
     draft: false,
+    noindex: false,
     rawContent: 'Hello world content.',
     lang: 'en',
     ...overrides,

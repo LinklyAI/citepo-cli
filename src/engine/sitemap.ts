@@ -30,12 +30,15 @@ function relativeSegments(pathname: string, config: BlogConfig): string[] {
   return segments
 }
 
-/** Options for @astrojs/sitemap: skip thin pages, add lastmod for posts and hreflang alternates. */
+/** Options for @astrojs/sitemap: skip thin and noindex pages, add lastmod for posts and hreflang alternates. */
 export function buildSitemapOptions(config: BlogConfig, posts: PostData[]): NonNullable<SitemapOptions> {
   const base = config.basePath === '/' ? '' : config.basePath
   const lastmodByPath = new Map<string, Date>()
+  const noindexPaths = new Set<string>()
   for (const post of posts) {
-    lastmodByPath.set(`${base}${postPathWithoutBase(post, config)}`, post.date)
+    const pathname = `${base}${postPathWithoutBase(post, config)}`
+    if (post.noindex) noindexPaths.add(pathname)
+    else lastmodByPath.set(pathname, post.updated ?? post.date)
   }
 
   const languages = config.languages ?? []
@@ -44,6 +47,7 @@ export function buildSitemapOptions(config: BlogConfig, posts: PostData[]): NonN
   return {
     filter: (page) => {
       const pathname = decodeURI(new URL(page).pathname).replace(/\/+$/, '')
+      if (noindexPaths.has(pathname)) return false
       if (lastmodByPath.has(pathname)) return true // a post, even one under a "page/" folder
       const first = relativeSegments(pathname, config)[0]
       return !(first && NON_INDEXABLE_SEGMENTS.has(first))

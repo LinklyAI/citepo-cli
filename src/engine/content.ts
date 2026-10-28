@@ -10,6 +10,10 @@ export interface PostData {
   tags: string[]
   authors: string[]
   draft: boolean
+  /** Last significant update (frontmatter `updated`). */
+  updated?: Date
+  /** Kept out of search results and the sitemap. */
+  noindex: boolean
   rawContent: string
   /** Language code extracted from file path (e.g., "zh" from "zh/hello-world") */
   lang: string
@@ -57,6 +61,8 @@ export async function readAllPosts(
       tags: Array.isArray(fm.tags) ? (fm.tags as string[]) : [],
       authors: Array.isArray(fm.authors) ? (fm.authors as string[]) : [],
       draft: fm.draft === true,
+      ...(fm.updated ? { updated: new Date(String(fm.updated)) } : {}),
+      noindex: fm.noindex === true,
       rawContent: parsed.content,
       lang,
     }

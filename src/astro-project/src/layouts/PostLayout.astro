@@ -23,6 +23,10 @@ interface Props {
   tags: string[]
   authors: string[]
   coverImage?: string
+  ogImage?: string
+  updated?: Date
+  noindex?: boolean
+  canonical?: string
   headings?: Heading[]
   lang?: string
   translations?: Record<string, string>
@@ -37,6 +41,10 @@ const {
   tags,
   authors,
   coverImage,
+  ogImage,
+  updated,
+  noindex = false,
+  canonical,
   headings = [],
   lang = blogConfig.defaultLanguage,
   translations = {},
@@ -74,9 +82,12 @@ const postProps = buildPostPageProps({
 <BaseLayout
   title={title}
   description={description}
-  ogImage={coverImage}
+  ogImage={ogImage ?? coverImage}
   type="article"
   publishedTime={date.toISOString()}
+  modifiedTime={updated?.toISOString()}
+  noindex={noindex}
+  canonical={canonical}
   authors={authors}
   tags={tags}
   lang={lang}

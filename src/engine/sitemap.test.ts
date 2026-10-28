@@ -20,6 +20,7 @@ const post = (slug: string, lang: string, date: string): PostData => ({
   tags: [],
   authors: [],
   draft: false,
+  noindex: false,
   rawContent: '',
 })
 
@@ -47,5 +48,15 @@ describe('buildSitemapOptions', () => {
 
   it('declares hreflang locales for multi-language blogs', () => {
     expect(options.i18n).toEqual({ defaultLocale: 'en', locales: { en: 'en', zh: 'zh' } })
+  })
+
+  it('uses updated for lastmod and leaves noindex posts out', async () => {
+    const updated = { ...post('fresh', 'en', '2026-01-01'), updated: new Date('2026-05-01') }
+    const hidden = { ...post('hidden', 'en', '2026-01-01'), noindex: true }
+    const opts = buildSitemapOptions(config, [updated, hidden])
+    expect(opts.filter!('https://x.com/blog/hidden')).toBe(false)
+    expect(await opts.serialize!({ url: 'https://x.com/blog/fresh' })).toMatchObject({
+      lastmod: '2026-05-01T00:00:00.000Z',
+    })
   })
 })

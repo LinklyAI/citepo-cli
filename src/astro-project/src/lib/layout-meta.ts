@@ -68,12 +68,15 @@ export type LayoutMetaInput = {
   ogImage?: string
   type?: 'website' | 'article'
   publishedTime?: string
+  modifiedTime?: string
   authors?: string[]
   tags?: string[]
   lang: string
   alternateLanguages?: Record<string, string>
   /** Pages kept out of search results get no canonical or hreflang links. */
   noindex?: boolean
+  /** Absolute URL that replaces the page's own canonical URL (e.g. the original of a republished post). */
+  canonical?: string
 }
 
 export type LayoutMetaResult = {
@@ -100,19 +103,22 @@ export function buildLayoutMeta({
   ogImage,
   type = 'website',
   publishedTime,
+  modifiedTime,
   authors = [],
   tags = [],
   lang,
   alternateLanguages = {},
   noindex = false,
+  canonical,
 }: LayoutMetaInput): LayoutMetaResult {
   const resolvedTitle = title ?? config.name
   const pageTitle =
     resolvedTitle === config.name ? resolvedTitle : `${resolvedTitle} - ${config.name}`
   const normalizedSiteUrl = siteUrl ? siteUrl.replace(/\/+$/, '') : undefined
-  const canonicalUrl = normalizedSiteUrl && !noindex
+  const ownUrl = normalizedSiteUrl
     ? `${normalizedSiteUrl}${encodePath(withoutTrailingSlash(pathname))}`
     : undefined
+  const canonicalUrl = noindex ? undefined : (canonical ?? ownUrl)
   const rssUrl = config.rss ? getRssUrl(lang, config) : undefined
   const multiLang = isMultiLang(config)
 
@@ -136,6 +142,7 @@ export function buildLayoutMeta({
     description,
     canonicalUrl,
     publishedTime,
+    modifiedTime,
     authors,
     tags,
     resolvedOgImage,
@@ -179,6 +186,7 @@ type JsonLdInput = {
   description?: string
   canonicalUrl?: string
   publishedTime?: string
+  modifiedTime?: string
   authors: string[]
   tags: string[]
   resolvedOgImage?: string
@@ -195,6 +203,7 @@ function buildJsonLd({
   description,
   canonicalUrl,
   publishedTime,
+  modifiedTime,
   authors,
   tags,
   resolvedOgImage,
@@ -217,6 +226,7 @@ function buildJsonLd({
       data.mainEntityOfPage = { '@type': 'WebPage', '@id': canonicalUrl }
     }
     if (publishedTime) data.datePublished = publishedTime
+    if (modifiedTime) data.dateModified = modifiedTime
     if (authors.length > 0) {
       data.author = authors.map((name) => ({ '@type': 'Person', name }))
     }
