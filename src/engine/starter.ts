@@ -1,4 +1,4 @@
-import { copyFile, access } from 'node:fs/promises'
+import { copyFile, access, mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { LanguageCodeType, ThemeNameType } from './config.js'
 
@@ -97,6 +97,55 @@ Add custom CSS to \`style.css\`. These styles load after the theme and have high
 - [CitePo Documentation](https://citepo.com/docs)
 - [CitePo GitHub](https://github.com/LinklyAI/citepo-cli)
 `
+}
+
+export interface CreateProjectOptions extends StarterOptions {
+  /** Extra languages besides the default one; empty for a single-language blog. */
+  additionalLanguages: LanguageCodeType[]
+}
+
+/**
+ * Create a new blog project in `targetDir`, which must not exist yet.
+ * Returns the full language list of the new blog.
+ */
+export async function createBlogProject(
+  scaffoldDir: string,
+  targetDir: string,
+  options: CreateProjectOptions,
+): Promise<LanguageCodeType[]> {
+  const allLanguages = [
+    options.defaultLanguage,
+    ...options.additionalLanguages.filter((l) => l !== options.defaultLanguage),
+  ]
+  const isMultiLang = allLanguages.length > 1
+
+  await mkdir(join(targetDir, 'asset', 'images'), { recursive: true })
+  if (isMultiLang) {
+    for (const lang of allLanguages)
+      await mkdir(join(targetDir, 'content', lang), { recursive: true })
+  } else {
+    await mkdir(join(targetDir, 'content'), { recursive: true })
+  }
+
+  const blogConfig = buildBlogJson(options, allLanguages)
+  await writeFile(join(targetDir, 'blog.json'), JSON.stringify(blogConfig, null, 2) + '\n', 'utf-8')
+  await copyFile(join(scaffoldDir, 'style.css'), join(targetDir, 'style.css'))
+  await copyFile(join(scaffoldDir, 'gitignore.template'), join(targetDir, '.gitignore'))
+  await writeFile(join(targetDir, 'README.md'), buildReadme(options.name), 'utf-8')
+
+  if (isMultiLang) {
+    for (const lang of allLanguages) {
+      await copyScaffoldContent(scaffoldDir, join(targetDir, 'content', lang), lang)
+    }
+  } else {
+    await copyScaffoldContent(scaffoldDir, join(targetDir, 'content'), options.defaultLanguage)
+  }
+
+  await writeFile(join(targetDir, 'asset', 'images', '.gitkeep'), '', 'utf-8')
+  await copyFile(join(scaffoldDir, 'asset', 'favicon.ico'), join(targetDir, 'asset', 'favicon.ico'))
+  await copyFile(join(scaffoldDir, 'asset', 'favicon.svg'), join(targetDir, 'asset', 'favicon.svg'))
+
+  return allLanguages
 }
 
 /** Copy scaffold content to target directory with language fallback */

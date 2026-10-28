@@ -1,33 +1,49 @@
 import { Command } from 'commander'
 import { getVersion } from './utils.js'
-import { newCommand } from './commands/new.js'
+import { initCommand } from './commands/init.js'
 import { devCommand } from './commands/dev.js'
 import { buildCommand } from './commands/build.js'
-import { checkForUpdates } from './version-check.js'
+import { printJson } from './run.js'
 
 const program = new Command()
 
 const version = await getVersion()
+const jsonRequested = process.argv.includes('--json')
 
 program
   .name('citepo')
   .description('A lightweight CLI for creating, previewing, and building blogs')
   .version(version, '-v, --version')
+  .option('--json', 'print one JSON document on stdout instead of human-readable output')
+  .showHelpAfterError(!jsonRequested)
+  .configureOutput({
+    // Usage errors (unknown option, missing argument) follow the same JSON contract
+    outputError: (message, write) => {
+      if (!jsonRequested) return write(message)
+      printJson({
+        ok: false,
+        error: { code: 'usage_error', message: message.replace(/^error: /, '').trim() },
+      })
+    },
+  })
 
-// Register commands
-program.addCommand(newCommand)
-program.addCommand(devCommand)
-program.addCommand(buildCommand)
+// Commands are grouped by object (`citepo <object> <action>`); the most frequent ones stay top-level
+for (const command of [initCommand, devCommand, buildCommand]) {
+  program.addCommand(inheritSettings(command, program))
+}
 
 program.addHelpText(
   'after',
   `
-Upgrade:
-  npm install -g citepo@latest
-`,
+Every command accepts --json for machine-readable output.
+Exit codes: 0 success, 1 error, 2 warnings only.`,
 )
 
-// Fire-and-forget background version check
-checkForUpdates()
+await program.parseAsync()
 
-program.parse()
+/** addCommand() does not copy output settings, so apply them to the whole command tree. */
+function inheritSettings(command: Command, parent: Command): Command {
+  command.copyInheritedSettings(parent)
+  for (const sub of command.commands) inheritSettings(sub, command)
+  return command
+}
