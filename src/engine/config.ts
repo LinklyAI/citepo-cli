@@ -118,10 +118,45 @@ export function validateBlogConfig(raw: unknown): BlogConfig {
   return config
 }
 
+/** blog.json exists but cannot be used; `issues` lists each problem as "path: message". */
+export class BlogConfigError extends Error {
+  constructor(
+    readonly kind: 'invalid_json' | 'invalid',
+    message: string,
+    readonly issues: string[] = [],
+  ) {
+    super(message)
+    this.name = 'BlogConfigError'
+  }
+}
+
 /** Load and validate blog.json from the given directory */
 export async function loadBlogConfig(dir: string): Promise<BlogConfig> {
   const filePath = join(dir, 'blog.json')
   const content = await readFile(filePath, 'utf-8')
-  const json: unknown = JSON.parse(content)
-  return validateBlogConfig(json)
+  let json: unknown
+  try {
+    json = JSON.parse(content)
+  } catch (err) {
+    throw new BlogConfigError(
+      'invalid_json',
+      `blog.json is not valid JSON: ${(err as Error).message}`,
+    )
+  }
+  try {
+    return validateBlogConfig(json)
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      const issues = err.issues.map(
+        (issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`,
+      )
+      throw new BlogConfigError(
+        'invalid',
+        `blog.json validation failed: ${issues.join('; ')}`,
+        issues,
+      )
+    }
+    if (err instanceof Error) throw new BlogConfigError('invalid', `blog.json: ${err.message}`)
+    throw err
+  }
 }

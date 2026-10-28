@@ -60,6 +60,7 @@ export const buildCommand = new Command('build')
 
       const contentDir = path.resolve(userDir, 'content')
       const resolvedOutDir = path.resolve(userDir, flags.outDir)
+      assertSafeOutDir(userDir, resolvedOutDir)
 
       log(`\n  Building ${blogConfig.name}...\n`)
 
@@ -144,6 +145,23 @@ export const buildCommand = new Command('build')
       return { data, render: renderBuild }
     }),
   )
+
+/** Astro empties the output directory first: never let it point at the project itself. */
+export function assertSafeOutDir(projectDir: string, outDir: string): void {
+  const fromOut = path.relative(outDir, projectDir)
+  const containsProject = fromOut === '' || !fromOut.startsWith('..')
+  const fromProject = path.relative(projectDir, outDir)
+  const protectedDir = ['content', 'asset', '.git', 'node_modules'].some(
+    (name) => fromProject === name || fromProject.startsWith(`${name}${path.sep}`),
+  )
+  if (containsProject || protectedDir) {
+    throw new CliError({
+      code: 'invalid_option',
+      message: `--out-dir ${outDir} would delete the blog's own files`,
+      expected: 'a separate folder, e.g. dist',
+    })
+  }
+}
 
 function renderBuild(data: BuildResult): string {
   return [

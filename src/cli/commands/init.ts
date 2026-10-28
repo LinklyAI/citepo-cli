@@ -261,7 +261,7 @@ async function promptOptions(
 ): Promise<InitOptions> {
   const cancel = () => {
     p.cancel('Operation cancelled.')
-    process.exit(0)
+    process.exit(130)
   }
   const askDirectoryName = () =>
     p.text({

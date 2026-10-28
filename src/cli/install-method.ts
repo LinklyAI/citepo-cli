@@ -22,7 +22,12 @@ export function detectInstallMethod(scriptPath = process.argv[1] ?? ''): Install
   const p = resolved.replace(/\\/g, '/')
 
   if (!p.includes('/node_modules/citepo/')) return { kind: 'source' }
-  if (p.includes('/_npx/') || p.includes('/.pnpm-store/') || p.includes('/dlx-'))
+  if (
+    p.includes('/_npx/') ||
+    p.includes('/.pnpm-store/') ||
+    p.includes('/dlx-') ||
+    p.includes('/pnpm/dlx/')
+  )
     return { kind: 'npx' }
   if (p.includes('/.bun/'))
     return { kind: 'global', manager: 'bun', command: ['bun', 'add', '-g', PACKAGE] }

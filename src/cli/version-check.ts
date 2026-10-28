@@ -99,7 +99,11 @@ export async function refreshUpdateCache(now = Date.now()): Promise<void> {
   const cache = readCache()
   if (cache && now - cache.checkedAt < CHECK_INTERVAL_MS) return
   const latest = await fetchLatestVersion()
-  if (latest) await writeUpdateCache(latest, now)
+  // On failure, remember the attempt too: offline machines would otherwise wait for the
+  // registry timeout on every command
+  const known = latest ?? cache?.latest
+  if (known) await writeUpdateCache(known, now)
+  else await writeUpdateCache('0.0.0', now)
 }
 
 /** Newer version known from the cache, or null. Reads no network. */

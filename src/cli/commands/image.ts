@@ -60,6 +60,14 @@ Example:
       }
 
       const postSlug = flags.post ? toKebabCase(path.basename(flags.post, '.mdx')) : null
+      if (flags.post && !postSlug) {
+        throw new CliError({
+          code: 'invalid_option',
+          message: `Cannot use "${flags.post}" as an image folder name`,
+          expected: 'the post slug in lowercase letters, numbers and hyphens',
+          hint: 'Pass the file name of the post, e.g. --post hello-world',
+        })
+      }
       const baseName = toKebabCase(flags.name ?? path.basename(sourcePath, ext)) ?? 'image'
       const input = await readFile(sourcePath)
       const webp = flags.keepFormat ? null : await encodeAsWebp(input, ext)
@@ -145,10 +153,11 @@ The build already does this for the published site; this shrinks the repository.
         })
       }
 
+      // Explicit paths must exist; the default folders are skipped when missing
       const roots =
         paths.length > 0
           ? paths.map((p) => path.resolve(p))
-          : ['asset', 'content'].map((d) => path.join(projectDir, d))
+          : ['asset', 'content'].map((d) => path.join(projectDir, d)).filter((d) => existsSync(d))
       const files = (await Promise.all(roots.map(collectImages))).flat()
 
       const changed: OptimizedFile[] = []

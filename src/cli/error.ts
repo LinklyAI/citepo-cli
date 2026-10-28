@@ -1,4 +1,5 @@
 import { ZodError } from 'zod'
+import { BlogConfigError } from '../engine/config.js'
 
 /** Exit codes shared by every command. */
 export const EXIT = {
@@ -40,25 +41,21 @@ const NOT_A_BLOG_HINT =
 export function toErrorDetails(err: unknown): CliErrorDetails {
   if (err instanceof CliError) return err.details
 
-  if (err instanceof ZodError) {
-    const issues = err.issues.map((issue) => {
-      const path = issue.path.length > 0 ? issue.path.join('.') : '(root)'
-      return `${path}: ${issue.message}`
-    })
+  if (err instanceof BlogConfigError) {
     return {
-      code: 'config_invalid',
-      message: `blog.json validation failed: ${issues.join('; ')}`,
+      code: err.kind === 'invalid_json' ? 'config_invalid_json' : 'config_invalid',
+      message: err.message,
       file: 'blog.json',
-      hint: 'Fix the fields above. Run `citepo docs config` to see every field.',
+      hint: 'Fix blog.json. Run `citepo docs config` to see every field.',
     }
   }
 
-  if (err instanceof SyntaxError) {
-    return {
-      code: 'config_invalid_json',
-      message: 'blog.json is not valid JSON',
-      file: 'blog.json',
-    }
+  // Validation errors that do not come from blog.json (e.g. Astro options built from flags)
+  if (err instanceof ZodError) {
+    const issues = err.issues.map(
+      (issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`,
+    )
+    return { code: 'invalid_input', message: issues.join('; ') }
   }
 
   if (err instanceof Error) {

@@ -84,7 +84,13 @@ Examples:
         })
       }
       const date = flags.date ?? today()
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(new Date(date).getTime())) {
+      // Round-trip the date: new Date('2026-02-30') silently becomes March 2nd
+      const parsedDate = new Date(`${date}T00:00:00Z`)
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+        Number.isNaN(parsedDate.getTime()) ||
+        parsedDate.toISOString().slice(0, 10) !== date
+      ) {
         throw new CliError({
           code: 'invalid_option',
           message: `Invalid date "${date}"`,
@@ -142,6 +148,16 @@ const listPostsCommand = new Command('list')
     action(async (_ctx, flags: ListFlags) => {
       const projectDir = process.cwd()
       const config = await loadBlogConfig(projectDir)
+      const configured = isMultiLanguage(config)
+        ? (config.languages ?? [])
+        : [config.defaultLanguage]
+      if (flags.lang && !configured.includes(flags.lang as never)) {
+        throw new CliError({
+          code: 'invalid_option',
+          message: `Language "${flags.lang}" is not configured in blog.json`,
+          expected: configured.join(' | '),
+        })
+      }
       const posts = (await listPosts(projectDir, config)).filter(
         (p) => (!flags.lang || p.lang === flags.lang) && (!flags.drafts || p.draft),
       )

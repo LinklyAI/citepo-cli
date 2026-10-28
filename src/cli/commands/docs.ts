@@ -43,7 +43,7 @@ export const docsCommand = new Command('docs')
             )}\n\n  Run ${style.cyan('citepo docs <topic>')} to read one.\n`,
         }
       }
-      if (!(topic in DOC_TOPICS)) {
+      if (!Object.hasOwn(DOC_TOPICS, topic)) {
         throw new CliError({
           code: 'unknown_topic',
           message: `Unknown topic "${topic}"`,

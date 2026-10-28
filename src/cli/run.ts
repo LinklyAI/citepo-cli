@@ -15,6 +15,8 @@ export interface CommandOutcome<T> {
   /** Human rendering of the result. Omit when the command already printed its own output. */
   render?: (data: T) => string
   exitCode?: ExitCode
+  /** Skip the "update available" notice (e.g. `upgrade` already handled it). */
+  hideUpdateNotice?: boolean
 }
 
 /** The JSON document every command prints with `--json`. */
@@ -61,7 +63,7 @@ export function action<A extends unknown[], T>(
     try {
       const outcome = await handler({ json }, ...args)
       exitCode = outcome.exitCode ?? EXIT.ok
-      const update = await currentUpdate()
+      const update = outcome.hideUpdateNotice ? undefined : await currentUpdate()
       if (json) {
         printJson({ ok: true, data: outcome.data, ...(update ? { update } : {}) })
       } else {

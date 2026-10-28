@@ -3,6 +3,7 @@ import { displayWidth, formatSize, renderTable } from './output.js'
 import { renderError } from './run.js'
 import { CliError, toErrorDetails } from './error.js'
 import { ZodError } from 'zod'
+import { BlogConfigError } from '../engine/config.js'
 
 describe('displayWidth', () => {
   it('counts CJK characters as two columns and ignores ANSI codes', () => {
@@ -49,9 +50,14 @@ describe('toErrorDetails', () => {
     expect(details.hint).toContain('citepo init')
   })
 
-  it('maps zod issues to config_invalid', () => {
-    const err = new ZodError([{ code: 'custom', path: ['name'], message: 'name is required' }])
-    expect(toErrorDetails(err)).toMatchObject({ code: 'config_invalid', file: 'blog.json' })
+  it('maps blog.json errors to config codes and other zod errors to invalid_input', () => {
+    const configError = new BlogConfigError(
+      'invalid',
+      'blog.json validation failed: name: required',
+    )
+    expect(toErrorDetails(configError)).toMatchObject({ code: 'config_invalid', file: 'blog.json' })
+    const err = new ZodError([{ code: 'custom', path: ['port'], message: 'Expected number' }])
+    expect(toErrorDetails(err)).toEqual({ code: 'invalid_input', message: 'port: Expected number' })
   })
 })
 

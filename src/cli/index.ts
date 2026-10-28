@@ -59,7 +59,21 @@ Every command accepts --json for machine-readable output.
 Exit codes: 0 success, 1 error, 2 warnings only.`,
 )
 
-await program.parseAsync()
+// `citepo --json` with no command would print help text; keep the JSON contract
+const commandArgs = process.argv.slice(2).filter((arg) => arg !== '--json')
+if (jsonRequested && commandArgs.length === 0) {
+  printJson({
+    ok: false,
+    error: {
+      code: 'usage_error',
+      message: 'No command given',
+      hint: 'Run `citepo --help` to list commands, e.g. `citepo check --json`.',
+    },
+  })
+  process.exitCode = 1
+} else {
+  await program.parseAsync()
+}
 
 /** addCommand() does not copy output settings, so apply them to the whole command tree. */
 function inheritSettings(command: Command, parent: Command): Command {

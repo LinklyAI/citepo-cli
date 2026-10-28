@@ -4,6 +4,7 @@ import { Command } from 'commander'
 import { loadBlogConfig, normalizeBasePath } from '../../engine/config.js'
 import { clearAstroCache, createFullAstroConfig, withPackageCwd } from '../../engine/astro.js'
 import { CONTENT_IMAGES_DIR } from '../../engine/remark-relative-images.js'
+import { CliError } from '../error.js'
 import { action } from '../run.js'
 
 export const devCommand = new Command('dev')
@@ -11,9 +12,16 @@ export const devCommand = new Command('dev')
   .option('-p, --port <port>', 'dev server port', '4321')
   .option('--base-path <path>', 'override basePath from blog.json')
   .action(
-    action(async (_ctx, options: { port: string; basePath?: string }) => {
+    action(async (ctx, options: { port: string; basePath?: string }) => {
       const userDir = process.cwd()
-      const port = parseInt(options.port, 10)
+      const port = Number(options.port)
+      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        throw new CliError({
+          code: 'invalid_option',
+          message: `Invalid port "${options.port}"`,
+          expected: 'a number from 1 to 65535',
+        })
+      }
 
       const blogConfig = await loadBlogConfig(userDir)
       if (options.basePath) blogConfig.basePath = normalizeBasePath(options.basePath)
@@ -23,6 +31,8 @@ export const devCommand = new Command('dev')
 
       // Generate Astro config with dynamic integrations
       const astroConfig = await createFullAstroConfig(blogConfig, userDir, { port })
+      // Keep stdout for the single JSON document; the server keeps running after it
+      if (ctx.json) astroConfig.logLevel = 'error'
 
       // Clear cached .astro to avoid cross-project stale modules
       await clearAstroCache()
@@ -42,7 +52,7 @@ export const devCommand = new Command('dev')
 
       // Graceful shutdown
       const shutdown = async () => {
-        console.log('\n  Stopping dev server...')
+        process.stderr.write('\n  Stopping dev server...\n')
         await devServer.stop()
         process.exit(0)
       }

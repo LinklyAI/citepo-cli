@@ -10,21 +10,34 @@ import { fetchLatestVersion, isNewerVersion, writeUpdateCache } from '../version
 export interface UpgradeResult {
   current: string
   latest: string
+  updateAvailable: boolean
   upgraded: boolean
   /** The command that was (or would be) run. */
   command?: string
 }
 
+/**
+ * Run a command. Quiet mode keeps stdout clean for --json and collects stderr, so a
+ * failure can say why (e.g. EACCES on a global npm prefix).
+ */
 function run(command: string[], quiet: boolean): Promise<void> {
   return new Promise((resolve, reject) => {
     const [bin, ...args] = command
     // Windows package managers are .cmd shims and need a shell
     const child = spawn(bin!, args, {
-      stdio: quiet ? 'ignore' : 'inherit',
+      stdio: quiet ? ['ignore', 'ignore', 'pipe'] : 'inherit',
       shell: process.platform === 'win32',
     })
+    let stderr = ''
+    child.stderr?.on('data', (chunk: Buffer) => {
+      stderr = (stderr + chunk.toString()).slice(-2000)
+    })
     child.on('error', reject)
-    child.on('exit', (code) => (code === 0 ? resolve() : reject(new Error(`exit code ${code}`))))
+    child.on('exit', (code) => {
+      if (code === 0) return resolve()
+      const tail = stderr.trim().split('\n').slice(-5).join('\n')
+      reject(new Error(`exit code ${code}${tail ? `: ${tail}` : ''}`))
+    })
   })
 }
 
@@ -46,16 +59,18 @@ export const upgradeCommand = new Command('upgrade')
 
       const method = detectInstallMethod()
       const command = method.kind === 'global' ? method.command.join(' ') : undefined
-      const result: UpgradeResult = { current, latest, upgraded: false, command }
+      const updateAvailable = isNewerVersion(current, latest)
+      const result: UpgradeResult = { current, latest, updateAvailable, upgraded: false, command }
       const render = (r: UpgradeResult) =>
         r.upgraded
           ? `\n  ${mark.ok()} Upgraded citepo ${r.current} → ${style.bold(r.latest)}\n`
           : `\n  ${mark.ok()} citepo ${r.current} is the latest version\n`
 
-      if (!isNewerVersion(current, latest)) return { data: result, render }
+      if (!updateAvailable) return { data: result, render, hideUpdateNotice: true }
       if (flags.check) {
         return {
           data: result,
+          hideUpdateNotice: true,
           render: (r: UpgradeResult) =>
             `\n  ${mark.info()} citepo ${r.latest} is available (installed: ${r.current}). Run ${style.cyan('citepo upgrade')}.\n`,
         }
@@ -81,14 +96,18 @@ export const upgradeCommand = new Command('upgrade')
       try {
         await run(method.command, ctx.json)
       } catch (err) {
+        const message = err instanceof Error ? err.message : String(err)
         throw new CliError({
           code: 'upgrade_failed',
-          message: `${command} failed: ${err instanceof Error ? err.message : String(err)}`,
-          hint: `Run it yourself: ${command}`,
+          message: `${command} failed: ${message}`,
+          hint: /EACCES|permission denied/i.test(message)
+            ? `No permission to write the global packages folder. Run it with the rights it needs (e.g. sudo ${command}), or install Node.js with a version manager.`
+            : `Run it yourself: ${command}`,
         })
       }
       // The new version's skill files ship with the new package: let it refresh the copies
       await run(['citepo', 'skill', 'update'], true).catch(() => undefined)
-      return { data: { ...result, upgraded: true }, render }
+      // This process is still the old version: the update notice would be stale
+      return { data: { ...result, upgraded: true }, render, hideUpdateNotice: true }
     }),
   )

@@ -166,7 +166,8 @@ export async function createPost(
   for (const { file } of files) {
     const absolute = path.join(projectDir, file)
     await mkdir(path.dirname(absolute), { recursive: true })
-    await writeFile(absolute, renderNewPost(options), 'utf-8')
+    // wx: never overwrite a file created since the check above (e.g. by another agent)
+    await writeFile(absolute, renderNewPost(options), { encoding: 'utf-8', flag: 'wx' })
   }
   return files
 }

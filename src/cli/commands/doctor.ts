@@ -8,7 +8,7 @@ import { EXIT, toErrorDetails } from '../error.js'
 import { mark, renderTable, style } from '../output.js'
 import { action } from '../run.js'
 import { getVersion } from '../utils.js'
-import { fetchLatestVersion, isNewerVersion } from '../version-check.js'
+import { fetchLatestVersion, isNewerVersion, updateCheckEnabled } from '../version-check.js'
 import { findInstalledSkills } from '../../engine/skill-install.js'
 
 const execFileAsync = promisify(execFile)
@@ -56,6 +56,9 @@ export function checkNode(version = process.versions.node): DoctorCheck {
 
 async function checkCli(): Promise<DoctorCheck> {
   const current = await getVersion()
+  if (!updateCheckEnabled()) {
+    return { name: 'citepo', status: 'ok', message: `citepo ${current} (update check turned off)` }
+  }
   const latest = await fetchLatestVersion()
   if (!latest)
     return {
@@ -194,11 +197,8 @@ export const doctorCommand = new Command('doctor')
   .action(
     action(async () => {
       const report = await runDoctor(process.cwd())
-      const exitCode = !report.ready
-        ? EXIT.error
-        : report.checks.some((c) => c.status === 'warn')
-          ? EXIT.warnings
-          : EXIT.ok
+      // Warnings (no gh, not in a blog folder) do not block anything: exit 0 when ready
+      const exitCode = report.ready ? EXIT.ok : EXIT.error
       return {
         data: report,
         exitCode,
