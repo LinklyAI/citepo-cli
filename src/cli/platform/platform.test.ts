@@ -5,7 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CliError } from '../error.js'
 import { api } from './client.js'
 import { loadCredentials, saveCredentials } from './credentials.js'
-import { failureReason, resolveSite, type PlatformDeploy, type PlatformSite } from './sites.js'
+import {
+  failureReason,
+  resolveSite,
+  servedDeployId,
+  type PlatformDeploy,
+  type PlatformSite,
+} from './sites.js'
 
 const site = (slug: string, repo: string | null): PlatformSite => ({
   id: `id-${slug}`,
@@ -103,6 +109,46 @@ describe('platform client', () => {
 
     stubFetch(() => Response.json({ sites: [site('alpha-blog', 'me/alpha')] }))
     expect((await resolveSite(undefined, home)).slug).toBe('alpha-blog')
+  })
+
+  it('lets `site connect` pick the only site without a repository', async () => {
+    await saveCredentials({ token: 'ctp_x' })
+    stubFetch(() =>
+      Response.json({
+        sites: [
+          site('alpha-blog', 'me/alpha'),
+          site('beta-blog', 'me/beta'),
+          site('new-blog', null),
+        ],
+      }),
+    )
+    expect((await resolveSite(undefined, home, { unconnected: true })).slug).toBe('new-blog')
+
+    stubFetch(() =>
+      Response.json({
+        sites: [site('alpha-blog', 'me/alpha'), site('one-blog', null), site('two-blog', null)],
+      }),
+    )
+    await expect(resolveSite(undefined, home, { unconnected: true })).rejects.toMatchObject({
+      details: { code: 'site_required' },
+    })
+  })
+
+  it('reads the served deploy from a probe that is not a page', async () => {
+    const fetchMock = stubFetch(
+      () => new Response(null, { status: 404, headers: { 'X-Citepo-Deploy': 'dep-2' } }),
+    )
+    expect(await servedDeployId('https://me.example/blog/')).toBe('dep-2')
+    expect(String(fetchMock.mock.calls[0]![0])).toBe(
+      'https://me.example/blog/__citepo-deploy-probe',
+    )
+
+    stubFetch(() => new Response(null, { status: 302 }))
+    expect(await servedDeployId('https://me.example')).toBeNull()
+    stubFetch(() => {
+      throw new TypeError('fetch failed')
+    })
+    expect(await servedDeployId('https://me.example')).toBeNull()
   })
 })
 

@@ -74,11 +74,14 @@ export async function gitHead(dir: string): Promise<string | null> {
 
 /**
  * The site a command is about: `--site <slug>` if given, else the site connected to this
- * folder's GitHub repository, else the only site of the account.
+ * folder's GitHub repository, else the only site of the account. With `unconnected`
+ * (for `site connect`), the only site without a repository also counts: right after
+ * `site create`, that is the site the person means.
  */
 export async function resolveSite(
   siteFlag: string | undefined,
   dir = process.cwd(),
+  { unconnected = false }: { unconnected?: boolean } = {},
 ): Promise<PlatformSite> {
   const sites = await listSites()
   if (siteFlag) {
@@ -98,6 +101,8 @@ export async function resolveSite(
     : undefined
   if (byRepo) return byRepo
   if (sites.length === 1) return sites[0]!
+  const withoutRepo = sites.filter((s) => !s.repo)
+  if (unconnected && withoutRepo.length === 1) return withoutRepo[0]!
 
   throw new CliError({
     code: sites.length === 0 ? 'no_sites' : 'site_required',
@@ -109,6 +114,28 @@ export async function resolveSite(
         ? 'Create one with `citepo site create --name "My Blog" --slug my-blog`.'
         : 'Pass --site <slug>.',
   })
+}
+
+/** Header naming the deploy a site address serves; set by the CitePo worker. */
+const SERVED_DEPLOY_HEADER = 'x-citepo-deploy'
+
+/**
+ * The deploy the site's address serves right now, or null if unknown (unreachable, or no
+ * route yet). Asks for a path that does not exist, so the probe never counts as a page view.
+ */
+export async function servedDeployId(siteUrl: string): Promise<string | null> {
+  try {
+    const probe = `${siteUrl.replace(/\/+$/, '')}/__citepo-deploy-probe`
+    const res = await fetch(probe, {
+      method: 'HEAD',
+      headers: { 'Cache-Control': 'no-cache' },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(10_000),
+    })
+    return res.headers.get(SERVED_DEPLOY_HEADER)
+  } catch {
+    return null
+  }
 }
 
 /** Dashboard page of a site's settings (connect repository, domains). */

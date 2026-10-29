@@ -101,7 +101,10 @@ const createCommand = new Command('create')
 
 const connectCommand = new Command('connect')
   .description('Connect the GitHub repository to a site; every push then publishes the blog')
-  .option('--site <slug>', 'site to connect (defaults to the only site)')
+  .option(
+    '--site <slug>',
+    'site to connect (defaults to the only site without a repository, or the only site)',
+  )
   .option('--repo <owner/name>', 'GitHub repository (defaults to the git remote origin)')
   .action(
     action(async (_ctx, flags: { site?: string; repo?: string }) => {
@@ -113,7 +116,7 @@ const connectCommand = new Command('connect')
           hint: 'Push the blog to GitHub first, or pass --repo owner/name.',
         })
       }
-      const site = await resolveSite(flags.site)
+      const site = await resolveSite(flags.site, process.cwd(), { unconnected: true })
       try {
         const result = await api<{ deployTriggered: boolean }>(
           'POST',

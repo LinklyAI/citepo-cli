@@ -8,6 +8,7 @@ import {
   gitHead,
   listDeploys,
   resolveSite,
+  servedDeployId,
   type PlatformDeploy,
 } from '../platform/sites.js'
 
@@ -16,7 +17,24 @@ const POLL_MS = 5000
 /** A push shows up as a deploy within seconds; after this, something is off. */
 const APPEAR_TIMEOUT_MS = 120_000
 
+/**
+ * After a build, the site address can serve the previous deploy for up to a minute while
+ * the new route spreads. Waiting this long covers it; later, report success with a note.
+ */
+const SERVE_TIMEOUT_MS = 90_000
+const SERVE_POLL_MS = 3000
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/** Wait until the site address serves `deployId`; false if it still did not after the timeout. */
+async function waitUntilServed(siteUrl: string, deployId: string): Promise<boolean> {
+  const started = Date.now()
+  for (;;) {
+    if ((await servedDeployId(siteUrl)) === deployId) return true
+    if (Date.now() - started > SERVE_TIMEOUT_MS) return false
+    await sleep(SERVE_POLL_MS)
+  }
+}
 
 function summary(d: PlatformDeploy): string {
   return d.commitMessage?.split('\n')[0] ?? d.commitSha?.slice(0, 7) ?? d.id
@@ -132,14 +150,23 @@ const waitCommand = new Command('wait')
         }
         if (deploy && FINISHED.has(deploy.status)) {
           if (deploy.status === 'success') {
+            // Only the newest successful deploy becomes the served one; an older one never will
+            const newest = deploys.find((d) => d.status === 'success')?.id === deploy.id
+            if (newest && !ctx.json) process.stderr.write('  waiting for the site to serve it\n')
+            const served = !newest || (await waitUntilServed(site.url, deploy.id))
+            const note = served
+              ? undefined
+              : 'Built, but the address still served the previous version a moment ago; it switches within a minute or two.'
             return {
               data: {
                 status: 'success',
                 url: site.url,
                 deployId: deploy.id,
                 commit: deploy.commitSha,
+                ...(note ? { note } : {}),
               },
-              render: () => `\n  ${mark.ok()} Live at ${style.cyan(site.url)}\n`,
+              render: () =>
+                `\n  ${mark.ok()} Live at ${style.cyan(site.url)}\n${note ? `  ${style.dim(note)}\n` : ''}`,
             }
           }
           throw new CliError({
