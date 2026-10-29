@@ -26,8 +26,9 @@ Hosted build limits:
 - Repository content (`content/` and `asset/`): 100 MB
 - Build output: 100 MB; a single file: 20 MB
 
-The build scales down and compresses images automatically. To make the repository smaller,
-run `citepo image optimize`.
+The build scales down and compresses images automatically, but re-encodes them on every
+build. When `citepo check` reports `large_images`, run `citepo image optimize` once and
+commit the result: a smaller repository and faster builds.
 
 ## Publishing from the CLI
 

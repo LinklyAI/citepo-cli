@@ -14,6 +14,14 @@ import sharp from 'sharp'
 export const MAX_IMAGE_WIDTH = 1600
 /** Keep a re-encoded file only when it saves at least this share of the original. */
 const MIN_SAVING_RATIO = 0.1
+/**
+ * At or below this many bytes per pixel an image is already well compressed: on real
+ * blog images re-encoding it saved under 10% in nearly every case, so it is skipped
+ * without spending time on encoding.
+ */
+export const COMPACT_BYTES_PER_PIXEL = 0.1
+/** `citepo image optimize` leaves smaller source files alone by default (`--min-size`). */
+export const SOURCE_MIN_BYTES = 300 * 1024
 const CONCURRENCY = 4
 const OPTIMIZABLE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.webp'])
 
@@ -38,10 +46,10 @@ export function isOptimizableImage(filePath: string): boolean {
 /**
  * How aggressively to re-encode:
  * - "output": the published copy in the build output; lossy re-encoding is fine
- * - "source": the user's own files; only images wider than MAX_IMAGE_WIDTH are touched,
- *   and PNGs stay lossless
+ * - "source": the user's own files; PNGs stay lossless, so only their width counts
+ * - "new": an image being added to a post; always encoded
  */
-export type OptimizeMode = 'output' | 'source'
+export type OptimizeMode = 'output' | 'source' | 'new'
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
 
@@ -53,6 +61,33 @@ export function isAnimatedPng(input: Buffer): boolean {
   return actl !== -1 && (idat === -1 || actl < idat)
 }
 
+interface ImageFacts {
+  width?: number
+  height?: number
+  orientation?: number
+  pages?: number
+}
+
+/**
+ * Whether an image is worth re-encoding: it is wider than MAX_IMAGE_WIDTH, or not yet
+ * compact. In "source" mode PNGs stay lossless, so only their width counts. Animated
+ * images never are (they would lose frames).
+ */
+export function needsOptimizing(
+  meta: ImageFacts,
+  bytes: number,
+  ext: string,
+  mode: OptimizeMode,
+): boolean {
+  if ((meta.pages ?? 1) > 1 || !meta.width || !meta.height) return false
+  if (mode === 'new') return true
+  // EXIF orientations 5-8 swap width and height once the image is rotated upright
+  const displayWidth = (meta.orientation ?? 1) >= 5 ? meta.height : meta.width
+  if (displayWidth > MAX_IMAGE_WIDTH) return true
+  if (mode === 'source' && ext.toLowerCase() === '.png') return false
+  return bytes > COMPACT_BYTES_PER_PIXEL * meta.width * meta.height
+}
+
 /** Re-encode one image: scale down to MAX_IMAGE_WIDTH and compress in its own format. */
 export async function optimizeImageBuffer(
   input: Buffer,
@@ -60,20 +95,18 @@ export async function optimizeImageBuffer(
   mode: OptimizeMode = 'output',
 ): Promise<Buffer | null> {
   const meta = await sharp(input, { animated: true }).metadata()
-  // Animated images would lose frames; leave them alone
-  if ((meta.pages ?? 1) > 1 || !meta.width || !meta.height || isAnimatedPng(input)) return null
+  if (!needsOptimizing(meta, input.length, ext, mode) || isAnimatedPng(input)) return null
 
-  // EXIF orientations 5-8 swap width and height once the image is rotated upright
-  const displayWidth = (meta.orientation ?? 1) >= 5 ? meta.height : meta.width
+  const displayWidth = (meta.orientation ?? 1) >= 5 ? meta.height! : meta.width!
   const tooWide = displayWidth > MAX_IMAGE_WIDTH
-  if (mode === 'source' && !tooWide) return null
 
   const pipeline = sharp(input).rotate()
   if (tooWide) pipeline.resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
 
   switch (ext.toLowerCase()) {
     case '.webp':
-      return pipeline.webp({ quality: 82, effort: 4 }).toBuffer()
+      // Effort 2 in builds: about 40% faster than 4 for 4% larger files
+      return pipeline.webp({ quality: 82, effort: mode === 'output' ? 2 : 4 }).toBuffer()
     case '.jpg':
     case '.jpeg':
       return pipeline.jpeg({ quality: 82, mozjpeg: true }).toBuffer()
@@ -158,8 +191,19 @@ export async function optimizeOutputImages(
 export async function encodeAsWebp(input: Buffer, ext: string): Promise<Buffer | null> {
   if (!isOptimizableImage(`x${ext}`)) return null
   try {
-    return await optimizeImageBuffer(input, '.webp')
+    return await optimizeImageBuffer(input, '.webp', 'new')
   } catch {
     return null
+  }
+}
+
+/** Whether `citepo image optimize` would shrink this source image (reads only the header). */
+export async function canShrinkSourceImage(filePath: string, bytes: number): Promise<boolean> {
+  if (!isOptimizableImage(filePath) || bytes < SOURCE_MIN_BYTES) return false
+  try {
+    const meta = await sharp(filePath, { animated: true }).metadata()
+    return needsOptimizing(meta, bytes, path.extname(filePath), 'source')
+  } catch {
+    return false
   }
 }

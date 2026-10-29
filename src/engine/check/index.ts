@@ -4,6 +4,7 @@ import path from 'node:path'
 import { loadBlogConfig, normalizeBasePath, type BlogConfig } from '../config.js'
 import { detectLang, parseFrontmatter, toEntryId } from '../content.js'
 import { PostFrontmatterSchema } from '../frontmatter.js'
+import { canShrinkSourceImage, MAX_IMAGE_WIDTH } from '../images.js'
 import { HOSTED_LIMITS, LIMIT_WARNING_RATIO } from '../limits.js'
 import { CONTENT_IMAGES_DIR } from '../remark-relative-images.js'
 import { scanMdxContent } from '../security.js'
@@ -43,8 +44,11 @@ export interface CheckReport {
   issues: CheckIssue[]
 }
 
-/** Source images above this size are reported (the build output is optimized anyway). */
-export const LARGE_IMAGE_BYTES = 1024 * 1024
+/**
+ * Above this many megabytes of shrinkable source images, `large_images` is a warning:
+ * every hosted build re-encodes them, which slows it down.
+ */
+const SHRINKABLE_WARNING_BYTES = 10 * 1024 * 1024
 
 const IMAGE_EXTENSIONS = new Set([
   '.png',
@@ -277,7 +281,8 @@ async function checkPost(input: CheckPostInput): Promise<PostRecord | undefined>
       continue
     }
     const size = (await stat(target)).size
-    if (size > LARGE_IMAGE_BYTES) largeImages.set(toPosix(path.relative(projectDir, target)), size)
+    if (await canShrinkSourceImage(target, size))
+      largeImages.set(toPosix(path.relative(projectDir, target)), size)
   }
 
   const id = fm?.slug || toEntryId(relative)
@@ -513,9 +518,9 @@ async function checkSourceSize(
     const sum = sorted.reduce((acc, [, size]) => acc + size, 0)
     issues.push({
       rule: 'large_images',
-      severity: nearLimit ? 'warning' : 'info',
-      message: `${sorted.length} image(s) over ${mb(LARGE_IMAGE_BYTES)}, ${mb(sum)} in total`,
-      hint: 'The build scales them down automatically; `citepo image optimize` also shrinks the source files.',
+      severity: nearLimit || sum > SHRINKABLE_WARNING_BYTES ? 'warning' : 'info',
+      message: `${sorted.length} image(s) are wider than ${MAX_IMAGE_WIDTH}px or not compressed yet, ${mb(sum)} in total`,
+      hint: 'Run `citepo image optimize` once and commit the result: a smaller repository and faster builds (every build otherwise re-encodes them).',
       details: sorted.slice(0, 10).map(([file, size]) => `${file} (${mb(size)})`),
     })
   }

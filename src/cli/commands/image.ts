@@ -3,7 +3,12 @@ import { copyFile, mkdir, readdir, readFile, stat, writeFile } from 'node:fs/pro
 import path from 'node:path'
 import { Command } from 'commander'
 import { loadBlogConfig } from '../../engine/config.js'
-import { encodeAsWebp, isOptimizableImage, optimizeImageFile } from '../../engine/images.js'
+import {
+  encodeAsWebp,
+  isOptimizableImage,
+  optimizeImageFile,
+  SOURCE_MIN_BYTES,
+} from '../../engine/images.js'
 import { CONTENT_IMAGES_DIR } from '../../engine/remark-relative-images.js'
 import { CliError } from '../error.js'
 import { formatSize, mark, renderTable, style } from '../output.js'
@@ -132,14 +137,15 @@ const optimizeImagesCommand = new Command('optimize')
   .description('Shrink images in the project in place (same name and format)')
   .argument('[paths...]', 'files or folders (defaults to asset/ and content/)')
   .option('--dry-run', 'only report what would change')
-  .option('--min-size <kb>', 'skip images smaller than this', '300')
+  .option('--min-size <kb>', 'skip images smaller than this', String(SOURCE_MIN_BYTES / 1024))
   .addHelpText(
     'after',
     `
-Only images wider than 1600px are changed: scaled down and re-encoded in their own
-format (PNG stays lossless), so every reference stays valid. Files are only replaced
-when they get at least 10% smaller.
-The build already does this for the published site; this shrinks the repository.`,
+Changes images wider than 1600px (scaled down) and JPEG/WebP files that are not
+compressed yet, re-encoding them in their own format (PNG stays lossless), so every
+reference stays valid. Files are only replaced when they get at least 10% smaller.
+Builds re-encode such images every time; shrinking them once here makes the
+repository smaller and builds faster.`,
   )
   .action(
     action(async (_ctx, paths: string[], flags: OptimizeFlags) => {

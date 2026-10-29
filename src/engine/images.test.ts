@@ -8,6 +8,7 @@ import {
   encodeAsWebp,
   isAnimatedPng,
   MAX_IMAGE_WIDTH,
+  needsOptimizing,
   optimizeImageBuffer,
   optimizeImageFile,
   optimizeOutputImages,
@@ -88,7 +89,7 @@ describe('image optimization', () => {
     expect(await encodeAsWebp(Buffer.from('<svg/>'), '.svg')).toBeNull()
   })
 
-  it('leaves animated PNG alone and only shrinks wide images in source mode', async () => {
+  it('leaves animated PNG alone and keeps narrow PNG sources lossless', async () => {
     const png = await (await noisyImage(2000, 100)).png().toBuffer()
     // Mark it as APNG: an acTL chunk before the first IDAT
     const idat = png.indexOf('IDAT') - 4
@@ -100,9 +101,24 @@ describe('image optimization', () => {
     expect(isAnimatedPng(apng)).toBe(true)
     expect(await optimizeImageBuffer(apng, '.png')).toBeNull()
 
-    const narrow = await (await noisyImage(800, 100)).jpeg({ quality: 100 }).toBuffer()
-    expect(await optimizeImageBuffer(narrow, '.jpg', 'source')).toBeNull()
-    expect(await optimizeImageBuffer(narrow, '.jpg', 'output')).not.toBeNull()
+    const narrowPng = await (await noisyImage(800, 100)).png().toBuffer()
+    expect(await optimizeImageBuffer(narrowPng, '.png', 'source')).toBeNull()
+    expect(await optimizeImageBuffer(narrowPng, '.png', 'output')).not.toBeNull()
+    // A heavy narrow JPEG is worth shrinking in both modes
+    const narrowJpeg = await (await noisyImage(800, 100)).jpeg({ quality: 100 }).toBuffer()
+    expect(await optimizeImageBuffer(narrowJpeg, '.jpg', 'source')).not.toBeNull()
+  })
+
+  it('skips images that are narrow enough and already compact, without encoding', () => {
+    const meta = { width: 1000, height: 500 }
+    // 0.1 bytes per pixel is the line
+    expect(needsOptimizing(meta, 50_000, '.webp', 'output')).toBe(false)
+    expect(needsOptimizing(meta, 50_001, '.webp', 'output')).toBe(true)
+    expect(needsOptimizing({ width: 2000, height: 500 }, 1_000, '.webp', 'output')).toBe(true)
+    expect(needsOptimizing({ width: 1000, height: 500, pages: 3 }, 9e6, '.webp', 'output')).toBe(
+      false,
+    )
+    expect(needsOptimizing(meta, 1_000, '.webp', 'new')).toBe(true)
   })
 
   it('measures width after EXIF rotation', async () => {
