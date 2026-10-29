@@ -50,6 +50,11 @@ citepo deploy wait --json         # waits until the pushed commit is live, or re
 - After each `git push`, `citepo deploy wait --json` follows the build of that commit.
   `citepo deploy logs` shows every build stage; `citepo deploy start` builds again.
 - `citepo site status --json` shows the address, repository and last deploy.
+- Search engines: after a post goes live, `citepo site index --submit --json` tells Bing,
+  Yandex and Naver about new and updated pages (IndexNow, read from the live sitemap). It
+  needs IndexNow turned on once in the dashboard (`indexnow_disabled` otherwise) and runs at
+  most once per 10 minutes per site (`submit_too_soon`). Without `--submit` it only lists
+  the pending pages.
 
 ## Preview locally
 

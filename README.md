@@ -44,22 +44,22 @@ pnpm install -g citepo
 yarn global add citepo
 ```
 
-| Command                          | Description                                                        |
-| -------------------------------- | ------------------------------------------------------------------ |
-| `citepo init [dir]`              | Create a blog (`--name`, `--lang`, `--langs`, `--theme`, `--yes`)  |
-| `citepo dev`                     | Start the local preview server                                     |
-| `citepo build`                   | Build the static site (images are compressed automatically)        |
-| `citepo check`                   | Check posts, images, links and sizes without building              |
-| `citepo post new \| list`        | Create a post with frontmatter filled in; list posts and URLs      |
-| `citepo tag list`                | List tags and spellings that differ only in case                   |
-| `citepo image add \| optimize`   | Add a compressed image to a post; shrink large images in place     |
-| `citepo docs [topic]`            | Writing reference: frontmatter, components, config, publish        |
-| `citepo skill install \| update` | Install the citepo skill for Claude Code, Codex, OpenClaw and more |
-| `citepo auth login \| status`    | Sign in to CitePo by approving a code in the browser               |
-| `citepo site create \| connect`  | Create a site and connect its GitHub repository                    |
-| `citepo deploy wait \| logs`     | Follow the build of a push until it is live, or see why it failed  |
-| `citepo doctor`                  | Check Node.js, citepo, the skill, git and the current folder       |
-| `citepo upgrade`                 | Upgrade citepo with the package manager that installed it          |
+| Command                                  | Description                                                                      |
+| ---------------------------------------- | -------------------------------------------------------------------------------- |
+| `citepo init [dir]`                      | Create a blog (`--name`, `--lang`, `--langs`, `--theme`, `--yes`)                |
+| `citepo dev`                             | Start the local preview server                                                   |
+| `citepo build`                           | Build the static site (images are compressed automatically)                      |
+| `citepo check`                           | Check posts, images, links and sizes without building                            |
+| `citepo post new \| list`                | Create a post with frontmatter filled in; list posts and URLs                    |
+| `citepo tag list`                        | List tags and spellings that differ only in case                                 |
+| `citepo image add \| optimize`           | Add a compressed image to a post; shrink large images in place                   |
+| `citepo docs [topic]`                    | Writing reference: frontmatter, components, config, publish                      |
+| `citepo skill install \| update`         | Install the citepo skill for Claude Code, Codex, OpenClaw and more               |
+| `citepo auth login \| status`            | Sign in to CitePo by approving a code in the browser                             |
+| `citepo site create \| connect \| index` | Create a site, connect its GitHub repository, submit new pages to search engines |
+| `citepo deploy wait \| logs`             | Follow the build of a push until it is live, or see why it failed                |
+| `citepo doctor`                          | Check Node.js, citepo, the skill, git and the current folder                     |
+| `citepo upgrade`                         | Upgrade citepo with the package manager that installed it                        |
 
 Every command accepts `--json` and prints a single JSON document; exit codes are 0 for
 success, 1 for errors and 2 for warnings only. `citepo new` still works as an alias of

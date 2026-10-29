@@ -14,6 +14,18 @@ const PLATFORM_HINTS: Record<string, string> = {
     'Link GitHub to your CitePo account once: open the site settings in the browser (`citepo site open --settings`) and choose Connect repository.',
   app_not_installed:
     'Install the CitePo GitHub App on the repository: open the site settings (`citepo site open --settings`), choose Connect repository, and grant the app access to it.',
+  indexnow_disabled:
+    'Turn on IndexNow once in the dashboard: Advanced → Search Engine Indexing (a Pro feature). Then run `citepo site index --submit` again.',
+  pro_required: 'This needs a CitePo Pro plan; the account owner can upgrade in the dashboard.',
+  submit_too_soon:
+    'Each site submits at most once per 10 minutes. Run `citepo site index --submit` again later; the pending URLs keep waiting.',
+  sitemap_unavailable:
+    'The pending URLs come from the live sitemap. Check that the site is deployed (`citepo deploy wait`) and serves sitemap-index.xml.',
+}
+
+/** The next step for a platform error code, for errors a command raises itself. */
+export function platformHint(code: string): string | undefined {
+  return PLATFORM_HINTS[code]
 }
 
 export interface PlatformErrorBody {

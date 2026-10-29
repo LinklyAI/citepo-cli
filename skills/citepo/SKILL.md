@@ -65,7 +65,8 @@ and whether the current folder is a blog.
 5. `citepo check --json`; fix every error, and the warnings about this post.
 6. Optional preview: `citepo dev` (http://localhost:4321; it keeps running).
 7. Commit; push when the user wants it published, then `citepo deploy wait --json` and give
-   the user the URL (or the failure reason from the result).
+   the user the URL (or the failure reason from the result). If the site has IndexNow on,
+   `citepo site index --submit --json` then tells search engines about the new page.
 
 ## Update a post
 

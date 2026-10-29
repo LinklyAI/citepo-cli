@@ -4,7 +4,7 @@ import { loadBlogConfig } from '../../engine/config.js'
 import { CliError } from '../error.js'
 import { mark, renderTable, style } from '../output.js'
 import { action } from '../run.js'
-import { api } from '../platform/client.js'
+import { api, platformHint } from '../platform/client.js'
 import { openBrowser } from '../platform/browser.js'
 import {
   gitHubRepoOf,
@@ -175,6 +175,95 @@ const openCommand = new Command('open')
     }),
   )
 
+interface PendingUrls {
+  enabled: boolean
+  urls: string[]
+  nextSubmitAt: string | null
+}
+
+interface IndexNowSubmission {
+  urlCount: number
+  status: string
+  responseCode: number | null
+  errorMessage: string | null
+}
+
+/** What to do after IndexNow refused a submission, by its response code. */
+function indexNowRejectionHint(responseCode: number | null): string {
+  if (responseCode === 429)
+    return 'Search engines are limiting submissions right now; run `citepo site index --submit` again in an hour.'
+  if (responseCode === 403 || responseCode === 422)
+    return 'IndexNow could not verify the key file; check that the site is deployed with IndexNow on, then retry.'
+  return 'Run `citepo site index --submit` again later; the pending URLs keep waiting.'
+}
+
+const indexCommand = new Command('index')
+  .description(
+    'Pages search engines have not been told about yet (new, or updated since the last submission); --submit sends them via IndexNow to Bing, Yandex and Naver',
+  )
+  .option('--site <slug>', 'site (defaults to the one connected to this folder)')
+  .option('--submit', 'submit the pending URLs (at most once per 10 minutes per site)')
+  .action(
+    action(async (_ctx, flags: { site?: string; submit?: boolean }) => {
+      const site = await resolveSite(flags.site)
+      const base = `/api/sites/${encodeURIComponent(site.id)}/search-index`
+      const pending = await api<PendingUrls>('GET', `${base}/pending`)
+      if (!pending.enabled) {
+        throw new CliError({
+          code: 'indexnow_disabled',
+          message: `IndexNow is off for ${site.slug}`,
+          hint: platformHint('indexnow_disabled'),
+        })
+      }
+
+      if (!flags.submit || pending.urls.length === 0) {
+        const count = pending.urls.length
+        return {
+          data: {
+            site: site.slug,
+            submitted: 0,
+            pending: count,
+            urls: pending.urls,
+            nextSubmitAt: pending.nextSubmitAt,
+            ...(count > 0 ? { next: 'citepo site index --submit' } : {}),
+          },
+          render: () =>
+            count === 0
+              ? `\n  ${mark.ok()} Every page in the sitemap has been submitted.\n`
+              : `\n  ${count} page${count === 1 ? '' : 's'} not submitted yet:\n${pending.urls.map((u) => `    ${u}`).join('\n')}\n\n  Submit them with ${style.cyan('citepo site index --submit')}.\n`,
+        }
+      }
+
+      if (pending.nextSubmitAt) {
+        throw new CliError({
+          code: 'submit_too_soon',
+          message: `${site.slug} submitted less than 10 minutes ago; it can submit again after ${pending.nextSubmitAt}`,
+          hint: platformHint('submit_too_soon'),
+        })
+      }
+      const { submission } = await api<{ submission: IndexNowSubmission | null }>('POST', base, {})
+      if (submission && submission.status !== 'success') {
+        throw new CliError({
+          code: 'indexnow_rejected',
+          message: `IndexNow refused the submission (${submission.responseCode ?? 'no response'}): ${submission.errorMessage ?? 'no message'}`,
+          hint: indexNowRejectionHint(submission.responseCode),
+        })
+      }
+      const submitted = submission?.urlCount ?? 0
+      return {
+        data: {
+          site: site.slug,
+          submitted,
+          pending: 0,
+          urls: [] as string[],
+          nextSubmitAt: null as string | null,
+        },
+        render: () =>
+          `\n  ${mark.ok()} Submitted ${submitted} URL${submitted === 1 ? '' : 's'} to Bing, Yandex and Naver.\n`,
+      }
+    }),
+  )
+
 export const siteCommand = new Command('site')
   .description('Create and connect CitePo sites (needs `citepo auth login`)')
   .addCommand(listCommand)
@@ -182,3 +271,4 @@ export const siteCommand = new Command('site')
   .addCommand(connectCommand)
   .addCommand(statusCommand)
   .addCommand(openCommand)
+  .addCommand(indexCommand)
