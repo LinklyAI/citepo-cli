@@ -1,4 +1,3 @@
-import { spawn } from 'node:child_process'
 import path from 'node:path'
 import { Command } from 'commander'
 import { loadBlogConfig } from '../../engine/config.js'
@@ -6,6 +5,7 @@ import { CliError } from '../error.js'
 import { mark, renderTable, style } from '../output.js'
 import { action } from '../run.js'
 import { api } from '../platform/client.js'
+import { openBrowser } from '../platform/browser.js'
 import {
   gitHubRepoOf,
   listSites,
@@ -167,14 +167,7 @@ const openCommand = new Command('open')
     action(async (ctx, flags: { site?: string; settings?: boolean }) => {
       const site = await resolveSite(flags.site)
       const url = flags.settings ? await siteSettingsUrl(site) : site.url
-      if (!ctx.json && process.stdout.isTTY && !process.env.SSH_CONNECTION) {
-        const command =
-          process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'cmd' : 'xdg-open'
-        const args = process.platform === 'win32' ? ['/c', 'start', '', url] : [url]
-        spawn(command, args, { stdio: 'ignore', detached: true })
-          .on('error', () => undefined)
-          .unref()
-      }
+      if (!ctx.json) openBrowser(url)
       return { data: { url }, render: () => `\n  ${url}\n` }
     }),
   )

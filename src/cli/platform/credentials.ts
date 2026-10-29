@@ -1,4 +1,5 @@
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { CliError } from '../error.js'
 import path from 'node:path'
 import { citepoHome } from '../paths.js'
 
@@ -43,9 +44,34 @@ function pendingPath(): string {
   return path.join(citepoHome(), 'pending-login.json')
 }
 
+/**
+ * The platform base URL. CITEPO_API_URL may point elsewhere (staging, local development),
+ * but tokens never travel over plain http except to localhost.
+ */
 export function apiUrl(): string {
-  return (process.env.CITEPO_API_URL || DEFAULT_API_URL).replace(/\/+$/, '')
+  const raw = (process.env.CITEPO_API_URL || DEFAULT_API_URL).replace(/\/+$/, '')
+  let url: URL
+  try {
+    url = new URL(raw)
+  } catch {
+    throw new CliError({ code: 'invalid_option', message: `CITEPO_API_URL is not a URL: ${raw}` })
+  }
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)
+  if (url.protocol !== 'https:' && !(local && url.protocol === 'http:')) {
+    throw new CliError({
+      code: 'invalid_option',
+      message: `CITEPO_API_URL must use https (got ${raw})`,
+      expected: 'https://citepo.com, or http://localhost for development',
+    })
+  }
+  if (raw !== DEFAULT_API_URL && !warnedAboutHost) {
+    warnedAboutHost = true
+    process.stderr.write(`  ! Using CitePo at ${raw} (CITEPO_API_URL)\n`)
+  }
+  return raw
 }
+
+let warnedAboutHost = false
 
 async function readJson<T>(file: string): Promise<T | null> {
   try {
@@ -59,7 +85,10 @@ async function readJson<T>(file: string): Promise<T | null> {
 async function writePrivateJson(file: string, data: unknown): Promise<void> {
   await mkdir(path.dirname(file), { recursive: true, mode: 0o700 })
   const temp = `${file}.tmp`
-  await writeFile(temp, JSON.stringify(data, null, 2) + '\n', { mode: 0o600 })
+  // A temp file left by a crash keeps its old mode: remove it, then create it 0600
+  await rm(temp, { force: true })
+  await writeFile(temp, JSON.stringify(data, null, 2) + '\n', { mode: 0o600, flag: 'wx' })
+  await chmod(temp, 0o600)
   await rename(temp, file)
 }
 

@@ -1,4 +1,3 @@
-import { spawn } from 'node:child_process'
 import { hostname, platform } from 'node:os'
 import { Command } from 'commander'
 import { CliError } from '../error.js'
@@ -6,6 +5,7 @@ import { mark, style } from '../output.js'
 import { action, type CommandOutcome } from '../run.js'
 import { getVersion } from '../utils.js'
 import { api, platformFetch } from '../platform/client.js'
+import { openBrowser } from '../platform/browser.js'
 import {
   apiUrl,
   deleteCredentials,
@@ -20,7 +20,6 @@ import {
 interface StartResponse {
   device_code: string
   user_code: string
-  verification_uri_complete: string
   expires_in: number
   interval: number
 }
@@ -45,6 +44,10 @@ type StatusResult =
   | { signedIn: false }
   | ({ signedIn: true; source: 'env' | 'file'; apiUrl: string } & AccountInfo)
 
+const USER_CODE = /^[A-Z2-9]{4}-[A-Z2-9]{4}$/
+/** Polls that fail (network, 5xx, proxy pages) before a waiting login gives up. */
+const MAX_POLL_FAILURES = 5
+
 /** Default time `auth login --wait` waits; agents re-run it on `login_timeout`. */
 const DEFAULT_WAIT_SECONDS = 300
 
@@ -58,7 +61,7 @@ async function startLogin(): Promise<PendingLogin> {
     }),
   })
   const data = (await res.json().catch(() => ({}))) as Partial<StartResponse> & { message?: string }
-  if (!res.ok || !data.device_code || !data.user_code || !data.verification_uri_complete) {
+  if (!res.ok || !data.device_code || !data.user_code || !USER_CODE.test(data.user_code)) {
     throw new CliError({
       code: res.status === 429 ? 'rate_limited' : 'login_failed',
       message: data.message ?? `Could not start the login (HTTP ${res.status})`,
@@ -67,7 +70,8 @@ async function startLogin(): Promise<PendingLogin> {
   const pending: PendingLogin = {
     deviceCode: data.device_code,
     userCode: data.user_code,
-    url: data.verification_uri_complete,
+    // Built here, not taken from the response: the CLI only ever opens a page on the API host
+    url: `${base}/cli/auth`,
     interval: data.interval ?? 5,
     expiresAt: Date.now() + (data.expires_in ?? 600) * 1000,
     apiUrl: base,
@@ -85,13 +89,22 @@ async function waitForApproval(
 ): Promise<{ email: string }> {
   const deadline = Math.min(Date.now() + timeoutSeconds * 1000, pending.expiresAt)
   let interval = pending.interval
+  let failures = 0
   for (;;) {
-    const res = await platformFetch(`${pending.apiUrl}/api/cli/auth/poll`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ device_code: pending.deviceCode }),
-    })
-    const data = (await res.json().catch(() => ({ status: 'invalid' }))) as PollResponse
+    // A failed poll keeps the pending login: the user may already have approved it
+    const data = await pollOnce(pending).catch(() => null)
+    if (!data) {
+      if (++failures >= MAX_POLL_FAILURES) {
+        throw new CliError({
+          code: 'network_error',
+          message: 'Could not reach CitePo to finish the login',
+          hint: 'Check the network, then run `citepo auth login --wait` again; the login is kept.',
+        })
+      }
+      await sleep(interval * 1000)
+      continue
+    }
+    failures = 0
     switch (data.status) {
       case 'approved':
         await saveCredentials({ token: data.token, email: data.email, apiUrl: pending.apiUrl })
@@ -108,13 +121,19 @@ async function waitForApproval(
           message: 'The login was denied in the browser',
           hint: 'Run `citepo auth login` to try again.',
         })
-      default:
+      case 'expired':
+      case 'delivered':
+      case 'invalid':
         await deletePendingLogin()
         throw new CliError({
           code: 'login_expired',
-          message: 'The login link expired or was already used',
-          hint: 'Run `citepo auth login` again.',
+          message: 'The login expired or was already used',
+          hint: 'Run `citepo auth login` to start a new one.',
         })
+      default:
+        // Unknown answer: treat like a failed poll
+        failures++
+        break
     }
     if (Date.now() + interval * 1000 > deadline) {
       if (Date.now() + interval * 1000 > pending.expiresAt) {
@@ -128,26 +147,22 @@ async function waitForApproval(
       throw new CliError({
         code: 'login_timeout',
         message: 'Still waiting for approval in the browser',
-        hint: `Ask the user to open ${pending.url} and approve code ${pending.userCode}, then run \`citepo auth login --wait\` again.`,
+        hint: `Ask the user to open ${pending.url}, enter code ${pending.userCode} and approve, then run \`citepo auth login --wait\` again.`,
       })
     }
     await sleep(interval * 1000)
   }
 }
 
-/** Open a URL in the default browser, only for a person at a local terminal. */
-function openBrowser(url: string): void {
-  if (!process.stdout.isTTY || process.env.SSH_CONNECTION || process.env.CI) return
-  const command =
-    process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'cmd' : 'xdg-open'
-  const args = process.platform === 'win32' ? ['/c', 'start', '', url] : [url]
-  try {
-    spawn(command, args, { stdio: 'ignore', detached: true })
-      .on('error', () => undefined)
-      .unref()
-  } catch {
-    // The URL is printed anyway
-  }
+/** One poll; throws on network errors and on non-JSON or non-2xx answers. */
+async function pollOnce(pending: PendingLogin): Promise<PollResponse> {
+  const res = await platformFetch(`${pending.apiUrl}/api/cli/auth/poll`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ device_code: pending.deviceCode }),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return (await res.json()) as PollResponse
 }
 
 interface LoginFlags {
@@ -209,13 +224,13 @@ Or set CITEPO_TOKEN (see \`citepo auth token\`).`,
         return {
           data: { status: 'pending' as const, ...instructions, next: 'citepo auth login --wait' },
           render: () =>
-            `\n  Open ${style.cyan(pending.url)}\n  and approve code ${style.bold(pending.userCode)}.\n  Then run ${style.cyan('citepo auth login --wait')}.\n`,
+            `\n  Open ${style.cyan(pending.url)}, enter code ${style.bold(pending.userCode)} and approve.\n  Then run ${style.cyan('citepo auth login --wait')}.\n`,
         }
       }
 
       if (!ctx.json) {
         console.log(
-          `\n  Open ${style.cyan(pending.url)}\n  and approve code ${style.bold(pending.userCode)}. Waiting...`,
+          `\n  Open ${style.cyan(pending.url)}, enter code ${style.bold(pending.userCode)} and approve. Waiting...`,
         )
         openBrowser(pending.url)
       }
@@ -273,16 +288,24 @@ const logoutCommand = new Command('logout')
           hint: 'Unset CITEPO_TOKEN in the environment of this agent or shell.',
         })
       }
+      let revoked = true
       if (credentials) {
-        // Best effort: an unreachable server must not keep the token on disk
-        await platformFetch(`${credentials.apiUrl}/api/cli/auth/revoke`, {
+        // An unreachable server must not keep the token on disk; say it may still work
+        const res = await platformFetch(`${credentials.apiUrl}/api/cli/auth/revoke`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${credentials.token}` },
-        }).catch(() => undefined)
+        }).catch(() => null)
+        revoked = Boolean(res && (res.ok || res.status === 401))
       }
       await deleteCredentials()
       await deletePendingLogin()
-      return { data: { signedIn: false }, render: () => `\n  ${mark.ok()} Signed out.\n` }
+      return {
+        data: { signedIn: false, revoked },
+        render: () =>
+          revoked
+            ? `\n  ${mark.ok()} Signed out.\n`
+            : `\n  ${mark.warn()} Signed out here, but CitePo could not be reached to revoke the token.\n  Revoke it in the CitePo dashboard under CLI sign-ins.\n`,
+      }
     }),
   )
 
@@ -298,6 +321,10 @@ const tokenCommand = new Command('token')
           hint: 'Run `citepo auth login` first.',
         })
       }
+      // The token grants full access: say so where people and agent transcripts see it
+      process.stderr.write(
+        '  ! This token gives full access to your CitePo sites. Keep it secret; revoke it in the CitePo dashboard (CLI sign-ins) if it leaks.\n',
+      )
       return { data: { token: credentials.token }, render: () => credentials.token }
     }),
   )

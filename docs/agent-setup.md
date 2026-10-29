@@ -124,8 +124,8 @@ Check: `citepo doctor --json` shows the `repository` check as `ok`.
 citepo auth login --no-wait --json
 ```
 
-Send the user the `url` and `code` from the result: they open the link on any device, check
-that the code matches, and approve (signing up first if they have no account). Then:
+Send the user the `url` and `code` from the result: they open the link on any device, type
+the code, and approve (signing up first if they have no account). Then:
 
 ```bash
 citepo auth login --wait --json        # run again on login_timeout

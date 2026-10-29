@@ -41,7 +41,7 @@ and whether the current folder is a blog.
    repository and push, e.g. `gh repo create my-blog --private --source . --push`.
 5. Publish it on CitePo (details in `references/publish.md`):
    ```bash
-   citepo auth login --no-wait --json   # send the url and code to the user; they approve
+   citepo auth login --no-wait --json   # send url and code; the user types the code there
    citepo auth login --wait --json      # repeat on login_timeout
    citepo site create --name "My Blog" --slug my-blog --json
    citepo site connect --json           # first time: the hint names a page the user opens once
