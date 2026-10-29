@@ -39,7 +39,8 @@ citepo deploy wait --json         # waits until the pushed commit is live, or re
 ```
 
 - `citepo auth login --no-wait --json` returns `url` and `code`. The user opens the link on any
-  device, types the code and approves; then `citepo auth login --wait --json` finishes (run it
+  device, checks that the page shows the same code and approves; then
+  `citepo auth login --wait --json` finishes (run it
   again on `login_timeout`). On servers, `CITEPO_TOKEN` can carry the token instead
   (`citepo auth token` prints it on a machine that is signed in).
 - The first `site connect` of an account may fail with `github_not_linked` or

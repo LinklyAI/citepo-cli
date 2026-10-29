@@ -124,8 +124,9 @@ Check: `citepo doctor --json` shows the `repository` check as `ok`.
 citepo auth login --no-wait --json
 ```
 
-Send the user the `url` and `code` from the result: they open the link on any device, type
-the code, and approve (signing up first if they have no account). Then:
+Send the user the `url` and `code` from the result: they open the link on any device, check
+that the page shows the same code, and approve (signing up first if they have no account).
+Then:
 
 ```bash
 citepo auth login --wait --json        # run again on login_timeout
@@ -157,11 +158,13 @@ Tell the user:
 
 ## Troubleshooting
 
-| Problem                                        | Fix                                                                            |
-| ---------------------------------------------- | ------------------------------------------------------------------------------ |
-| `npm install -g` fails with EACCES             | Use pnpm or bun, or set an npm prefix in the user's home folder                |
-| `citepo` not found right after installing      | Open a new shell, or check that the package manager's bin folder is on PATH    |
-| The skill is not picked up                     | Start a new session; check the folder with `citepo skill status`               |
-| `gh repo create` fails                         | `gh auth login`, or create the repository on github.com                        |
-| Build fails on CitePo                          | Run `citepo check --json` and `citepo build --json` locally and fix the errors |
-| Site is up but links to other posts are broken | If it is served under a sub path, run `citepo check --base-path <path>`        |
+| Problem                                                       | Fix                                                                            |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `npm install -g` fails with EACCES                            | Use pnpm or bun, or set an npm prefix in the user's home folder                |
+| `citepo` not found right after installing                     | Open a new shell, or check that the package manager's bin folder is on PATH    |
+| pnpm: `ERR_PNPM_GLOBAL_BIN_DIR_NOT_IN_PATH`                   | Ask the user to run `pnpm setup` and open a new shell                          |
+| pnpm installs an older version than `npm view citepo version` | pnpm skips versions younger than a day: `pnpm add -g citepo@<version>`         |
+| The skill is not picked up                                    | Start a new session; check the folder with `citepo skill status`               |
+| `gh repo create` fails                                        | `gh auth login`, or create the repository on github.com                        |
+| Build fails on CitePo                                         | Run `citepo check --json` and `citepo build --json` locally and fix the errors |
+| Site is up but links to other posts are broken                | If it is served under a sub path, run `citepo check --base-path <path>`        |

@@ -70,8 +70,9 @@ async function startLogin(): Promise<PendingLogin> {
   const pending: PendingLogin = {
     deviceCode: data.device_code,
     userCode: data.user_code,
-    // Built here, not taken from the response: the CLI only ever opens a page on the API host
-    url: `${base}/cli/auth`,
+    // Built here, not taken from the response: the CLI only ever opens a page on the API host.
+    // The code in the link lets the page approve with one click; it shows the device and code.
+    url: `${base}/cli/auth?code=${data.user_code}`,
     interval: data.interval ?? 5,
     expiresAt: Date.now() + (data.expires_in ?? 600) * 1000,
     apiUrl: base,
@@ -147,7 +148,7 @@ async function waitForApproval(
       throw new CliError({
         code: 'login_timeout',
         message: 'Still waiting for approval in the browser',
-        hint: `Ask the user to open ${pending.url}, enter code ${pending.userCode} and approve, then run \`citepo auth login --wait\` again.`,
+        hint: `Ask the user to open ${pending.url}, check that the page shows code ${pending.userCode} and approve, then run \`citepo auth login --wait\` again.`,
       })
     }
     await sleep(interval * 1000)
@@ -173,7 +174,7 @@ interface LoginFlags {
 }
 
 const loginCommand = new Command('login')
-  .description('Sign in to CitePo: approve a code in the browser on any device')
+  .description('Sign in to CitePo: approve in the browser on any device')
   // --wait first: then --no-wait does not turn the default into true
   .option('--wait', 'finish a login started with --no-wait (repeatable)')
   .option('--no-wait', 'start the login, print the link and code, and return at once')
@@ -184,7 +185,7 @@ const loginCommand = new Command('login')
     `
 For people: run \`citepo auth login\`, approve in the browser that opens.
 For agents (no browser, tool calls time out):
-  citepo auth login --no-wait --json    # gives url and code: send both to the user
+  citepo auth login --no-wait --json    # gives url and code: send both to the user to approve
   citepo auth login --wait --json       # after the user approved; repeat on login_timeout
 Or set CITEPO_TOKEN (see \`citepo auth token\`).`,
   )
@@ -224,13 +225,13 @@ Or set CITEPO_TOKEN (see \`citepo auth token\`).`,
         return {
           data: { status: 'pending' as const, ...instructions, next: 'citepo auth login --wait' },
           render: () =>
-            `\n  Open ${style.cyan(pending.url)}, enter code ${style.bold(pending.userCode)} and approve.\n  Then run ${style.cyan('citepo auth login --wait')}.\n`,
+            `\n  Open ${style.cyan(pending.url)} and approve (code ${style.bold(pending.userCode)}).\n  Then run ${style.cyan('citepo auth login --wait')}.\n`,
         }
       }
 
       if (!ctx.json) {
         console.log(
-          `\n  Open ${style.cyan(pending.url)}, enter code ${style.bold(pending.userCode)} and approve. Waiting...`,
+          `\n  Approve in the browser: ${style.cyan(pending.url)} (code ${style.bold(pending.userCode)}). Waiting...`,
         )
         openBrowser(pending.url)
       }
