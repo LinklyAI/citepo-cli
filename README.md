@@ -27,7 +27,8 @@ Set up CitePo for me: https://citepo.com/agent-setup.md
 ```
 
 The agent installs the CLI and its skill, creates the blog, writes the first post with you
-and gets it published. See [docs/agent-setup.md](./docs/agent-setup.md).
+and gets it published. If you already have a CitePo blog, it signs you in and brings that blog
+onto your computer instead. See [docs/agent-setup.md](./docs/agent-setup.md).
 
 ## Commands
 
